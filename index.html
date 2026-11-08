@@ -464,7 +464,7 @@ const Sfx = (() => {
   function rlStart() {
     rlStop(); const c = get(); if (!c) return;
     const s = c.createBufferSource(), f = c.createBiquadFilter(), am = c.createGain(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain();
-    s.buffer = noiseBuf; s.loop = true; f.type = 'bandpass'; f.frequency.value = 2200; f.Q.value = 3.5;
+    s.buffer = noiseBuf; s.loop = true; f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 2.2;
     am.gain.value = .5; l.type = 'triangle'; l.frequency.value = 30; lg.gain.value = .5; g.gain.value = .0001;
     l.connect(lg); lg.connect(am.gain); s.connect(f); f.connect(am); am.connect(g); g.connect(out); s.start(); l.start(); rl = { s, f, l, g };
   }
@@ -472,18 +472,31 @@ const Sfx = (() => {
     if (!rl) return; if (!on || !ctx) { rlStop(); return; }
     const t = ctx.currentTime;
     rl.l.frequency.setTargetAtTime(7 + w * 1.1, t, .05);
-    rl.f.frequency.setTargetAtTime(1500 + Math.min(1800, w * 55), t, .05);
-    rl.g.gain.setTargetAtTime(rolling ? Math.min(.11, .03 + w * .004) : .0001, t, .04);
-  }  function rlClick(sp) {
-    if (!get()) return; sp = Math.max(0, Math.min(1, sp));
-    burst(0, .025, 2800 + Math.random() * 1200, 5, .07 + .16 * sp, 'bandpass'); voice(1900 + Math.random() * 600, 0, .07, .04 + .05 * sp, 'soft');
+    rl.f.frequency.setTargetAtTime(600 + Math.min(1100, w * 32), t, .05);
+    rl.g.gain.setTargetAtTime(rolling ? Math.min(.1, .03 + w * .0035) * (.8 + Math.random() * .4) : .0001, t, .04);
+  }  // твёрдый удар шарика: затухающие неточные гармоники (пластик/слоновая кость) + короткий шум + глухой стук дерева
+  function hit(t, a, p) {
+    const c = get(); if (!c) return; const t0 = c.currentTime + t;
+    [[2400, .03, 1], [3700, .02, .6], [5600, .013, .35], [1350, .045, .55]].forEach(([f, d, m]) => {
+      const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f * p * (1 + (Math.random() - .5) * .05);
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.15 * a * m, t0 + .0012); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + d + .02);
+    });
+    burst(t, .012, 5200 * p, 1, .2 * a, 'bandpass');
+    const w = c.createOscillator(), wg = c.createGain(); w.type = 'sine'; w.frequency.setValueAtTime(240 * p, t0); w.frequency.exponentialRampToValueAtTime(150 * p, t0 + .05);
+    wg.gain.setValueAtTime(.0001, t0); wg.gain.exponentialRampToValueAtTime(.13 * a, t0 + .003); wg.gain.exponentialRampToValueAtTime(.0001, t0 + .06);
+    w.connect(wg); wg.connect(out); w.start(t0); w.stop(t0 + .08);
   }
-  function rlDrop() { if (!get()) return; burst(0, .12, 1200, 1.2, .22, 'bandpass'); burst(.03, .05, 3200, 3, .18); voice(N(-5), 0, .2, .1, 'soft'); }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
+  function rlClick(sp) { sp = Math.max(0, Math.min(1, sp)); hit(0, .45 + .55 * sp, .9 + Math.random() * .2); }
+  // падение с обода: удары о дефлекторы, затем первый тяжёлый контакт с колесом
+  function rlDrop() { [[0, 1, 1.15], [.085, .8, .95], [.19, .95, 1.05], [.3, .7, .9], [.4, .55, 1]].forEach(([t, a, p]) => hit(t, a, p)); }
+  // шарик замирает в ячейке: отскоки с укорачивающимися паузами и тихий «посад»
+  function rlSettle() { [[0, .9], [.08, .6], [.135, .4], [.175, .26], [.2, .16]].forEach(([t, a]) => hit(t, a, .95 + Math.random() * .1)); burst(.24, .05, 400, .8, .08, 'lowpass'); }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
   return {
     get on() { return on; }, get state() { return ctx ? ctx.state : 'none'; },
     unlock() { const c = get(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {} if (c.state === 'suspended') c.resume(); },
     crashStart, crashUpdate, crashStop, crashBoom,
-    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop,
+    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop, rlSettle,
     setOn(v) { on = v; try { localStorage.setItem('casino_sfx', v ? '1' : '0'); } catch (e) {} },
     win(big) { [0, 4, 7, 12].forEach((s, i) => voice(N(s + 12), i * .1, .9, .2, 'bell')); if (big) [0, 4, 7].forEach(s => voice(N(s + 24), .45, 1.2, .12, 'bell')); },
     lose() { [-5, -8, -12].forEach((s, i) => voice(N(s), i * .22, .8, .26, 'dark')); },
@@ -1014,7 +1027,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
       drawWheel(W, B, Br);
       const om = balls * 3 * Math.pow(1 - k, 2) / (T / 1000);
       Sfx.rlUpdate(om, k < .7);
-      if (k < .7) { const rv = Math.floor(B / (2 * Math.PI)); if (prevRev !== null && rv !== prevRev) Sfx.rlClick(.35); prevRev = rv; }
+      if (k < .7) { const rv = Math.floor(B * 3 / (2 * Math.PI)); if (prevRev !== null && rv !== prevRev) Sfx.rlClick(.45 + Math.random() * .25); prevRev = rv; }
       if (k >= .7) {
         if (!dropped) { dropped = true; Sfx.rlDrop(); }
         const pk = Math.floor((B + Math.PI / 2 - W) / STEP + .5);
@@ -1022,7 +1035,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
         prevP = pk;
       }
       if (k < 1) { requestAnimationFrame(tick); return; }
-      Sfx.rlStop(); Sfx.rlClick(.6); wheelRot = (w0 + total_) % (2 * Math.PI); finish(result);
+      Sfx.rlStop(); Sfx.rlSettle(); wheelRot = (w0 + total_) % (2 * Math.PI); finish(result);
     })(t0);
   }
   function finish(n) {
@@ -1031,7 +1044,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     pay = Math.round(pay * 100) / 100; ret += pay; staked += stake; spins++; pay > stake ? wins++ : losses++;
     G('num').textContent = n; G('num').className = 'rl-' + { r: 'red', b: 'black', g: 'green' }[colorOf(n)];
     cells['n' + n].classList.add('win');
-    const net = pay - stake; setTimeout(() => { net > 0 ? Sfx.win(net >= stake * 5) : net < 0 ? Sfx.lose() : 0; }, 350);
+    const net = pay - stake; setTimeout(() => { net > 0 ? Sfx.win(net >= stake * 5) : net < 0 ? Sfx.lose() : 0; }, 650);
     G('msg').textContent = 'Выпало ' + n + '. ' + (net > 0 ? 'Выигрыш +' + money(net) : net === 0 ? 'В ноль' : 'Проигрыш ' + money(net)); G('msg').style.color = net > 0 ? 'var(--up)' : net < 0 ? 'var(--down)' : 'var(--text)';
     histPush(G('hist'), '<li><span class="n">#' + spins + '</span><span class="t" style="color:' + (n === 0 ? 'var(--up)' : REDS.has(n) ? '#ff6b73' : '#c9d1de') + '">' + n + '</span><span class="b" style="color:' + (net >= 0 ? 'var(--up)' : 'var(--down)') + '">' + (net >= 0 ? '+' : '') + money(net) + '</span></li>', 10000);
     last = Object.assign({}, bets); bets = {}; stack = []; busy = false; Bank.add(pay); renderChips(); stats();
