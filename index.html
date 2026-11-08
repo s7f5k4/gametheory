@@ -248,22 +248,22 @@ header.top{padding-top:env(safe-area-inset-top)}
 @media (max-width:640px){
   header.top{backdrop-filter:blur(8px)}
   .topin{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 12px}
-  .brand{font-size:16px;order:1;margin-right:auto}
-  .bank{order:2;min-width:0;text-align:right}
+  .brand{display:none}
+  .bank{order:1;min-width:0;text-align:left;margin-right:auto}
   .bank .label{display:none}
   #bal{font-size:21px}
   #esc{min-height:0;font-size:11px}
-  #sfx,#newgame{order:3;margin:0;padding:6px 9px;font-size:11px;min-height:34px}
-  nav{order:4;flex:1 0 100%;margin:0 -12px;padding:2px 12px 4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  nav a{flex:0 0 auto;scroll-snap-align:start;padding:9px 14px;font-size:14px;border-color:var(--line)}
+  #sfx,#newgame{order:2;margin:0;padding:7px 11px;font-size:12px;min-height:36px;box-shadow:none;transform:none}
+  nav{order:4;flex:1 0 100%;margin:0 -12px;padding:2px 12px 4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  nav a{flex:0 0 auto;padding:9px 14px;font-size:14px;border-color:var(--line)}
   nav a.on{border-color:var(--gold)}
-  .page{padding:12px 12px calc(28px + env(safe-area-inset-bottom))}
+  .page{padding:12px 12px calc(96px + env(safe-area-inset-bottom))}
   h2.ptitle{font-size:19px;line-height:1.25;margin-bottom:10px}
   .grid3{gap:12px}
   .panel{padding:14px;border-radius:12px}
   .center{gap:14px}
   .ctl{max-width:none;gap:14px}
-  .ctl2{grid-template-columns:1fr 1fr;gap:8px}
+  .ctl2{grid-template-columns:1fr;gap:12px}
   input[type=number],select{padding:12px;min-height:46px}
   button{min-height:48px}
   button.sec,button.ghost{min-height:42px}
