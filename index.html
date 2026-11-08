@@ -411,9 +411,43 @@ const Sfx = (() => {
     s.connect(f); f.connect(g); g.connect(out); s.start(t0, Math.random() * .5); s.stop(t0 + d + .03);
   }
   const N = s => 261.63 * Math.pow(2, s / 12), MAJ = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16], MIN = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15];
+  // ---- краш: «двигатель» с тоном по множителю, вехи, взрыв ----
+  let eng = null; const MILE = [1.5, 2, 3, 5, 10, 25, 100, 1000];
+  function crashStop() {
+    if (!eng) return; const c = ctx, e = eng; eng = null;
+    try { const t = c.currentTime; e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(.0001, t, .03); e.o1.stop(t + .2); e.o2.stop(t + .2); } catch (x) {}
+  }
+  function crashStart() {
+    crashStop(); const c = get(); if (!c) return; const t = c.currentTime;
+    burst(0, .4, 500, .8, .13, 'lowpass'); burst(0, .12, 3200, 1.2, .07); voice(N(-17), 0, .3, .13, 'soft');
+    const o1 = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o1.type = 'sawtooth'; o2.type = 'triangle'; o1.frequency.value = 85; o2.frequency.value = 170;
+    f.type = 'lowpass'; f.frequency.value = 450; f.Q.value = 3;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .3);
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(out); o1.start(); o2.start();
+    eng = { o1, o2, f, g, mi: 0 };
+  }
+  function crashUpdate(m, cashed) {
+    if (!eng) return; if (!on || !ctx) { crashStop(); return; }
+    const t = ctx.currentTime, l = Math.log2(Math.max(1, m)), fr = Math.min(1500, 85 * Math.pow(Math.max(1, m), .4));
+    eng.o1.frequency.setTargetAtTime(fr, t, .06); eng.o2.frequency.setTargetAtTime(fr * 2.003, t, .06);
+    eng.f.frequency.setTargetAtTime(Math.min(5200, 450 + 260 * l), t, .08);
+    eng.g.gain.setTargetAtTime(cashed ? .03 : Math.min(.1, .05 + .005 * l), t, .1);
+    while (eng.mi < MILE.length && m >= MILE[eng.mi]) { const i = eng.mi++; voice(N(12 + i * 2), 0, .45, .1, 'bell'); voice(N(24 + i * 2), .06, .35, .05, 'bell'); }
+  }
+  function crashBoom() {
+    const c = get(); if (!c) return; const t = c.currentTime;
+    burst(0, 1.1, 260, .6, .55, 'lowpass'); burst(0, .3, 2800, .7, .22); burst(.04, .5, 900, .7, .18);
+    const o = c.createOscillator(), g = c.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(32, t + .7);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .85);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + .9);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
   return {
     get on() { return on; }, get state() { return ctx ? ctx.state : 'none'; },
     unlock() { const c = get(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {} if (c.state === 'suspended') c.resume(); },
+    crashStart, crashUpdate, crashStop, crashBoom,
     setOn(v) { on = v; try { localStorage.setItem('casino_sfx', v ? '1' : '0'); } catch (e) {} },
     win(big) { [0, 4, 7, 12].forEach((s, i) => voice(N(s + 12), i * .1, .9, .2, 'bell')); if (big) [0, 4, 7].forEach(s => voice(N(s + 24), .45, 1.2, .12, 'bell')); },
     lose() { [-5, -8, -12].forEach((s, i) => voice(N(s), i * .22, .8, .26, 'dark')); },
@@ -744,7 +778,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     autoAt = readAuto(); G('bet').value = betNow.toFixed(2);
     staked += betNow; cashed = null; curM = 1;
     crashAt = crashPoint(Number(G('edge').value));
-    state = 'run'; Bank.add(-betNow); t0 = performance.now();
+    state = 'run'; Bank.add(-betNow); t0 = performance.now(); Sfx.crashStart();
     msg(''); stats(); buttons();
     mult('1.00x', autoAt ? 'авто-вывод на ' + mx(autoAt) : 'нажмите «Забрать»', 'run');
     cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
@@ -753,7 +787,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     if (state !== 'run') return;
     const m = mAt(Math.max(0, (now - t0) / 1000));
     if (m >= crashAt) { crash(); return; }
-    curM = m; const shown = dollars(m);
+    curM = m; const shown = dollars(m); Sfx.crashUpdate(m, !!cashed);
     if (!cashed && autoAt && shown >= autoAt) doCash(autoAt);
     mult(mx(shown), cashed ? 'выведено на ' + mx(cashed) : '', cashed ? 'won' : 'run');
     if (!cashed) buttons();
@@ -767,7 +801,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   }
   const rowHtml = (n, c, bet, out) => '<li><span class="n">#' + n + '</span><span class="x ' + cls(c) + '">' + mx(c) + '</span><span class="bet">ставка ' + money(bet) + '</span><span class="res ' + (out > 0 ? 'u' : 'd') + '">' + (out > 0 ? '+' + money(out - bet) : money(-bet)) + '</span></li>';
   function crash() {
-    cancelAnimationFrame(raf);
+    cancelAnimationFrame(raf); Sfx.crashStop(); Sfx.crashBoom();
     const c = crashAt; rounds++; best = Math.max(best, c);
     const payout = cashed ? Math.round(betNow * cashed * 100) / 100 : 0;
     if (!cashed) { Sfx.lose(); losses++; msg('Краш на ' + mx(c) + '. Потеряно ' + money(betNow), 'var(--down)'); }
@@ -816,7 +850,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   }));
   window.addEventListener('keydown', e => { if (e.code === 'Space' && root.classList.contains('on') && !['INPUT', 'SELECT', 'BUTTON'].includes(e.target.tagName)) { e.preventDefault(); state === 'run' ? manualCash() : start(); } });
   window.addEventListener('resize', () => { size(); draw(state === 'run' ? curM : 1, false); });
-  window.addEventListener('pagechange', e => { if (e.detail === 'crash') { size(); draw(state === 'run' ? curM : 1, false); } });
+  window.addEventListener('pagechange', e => { if (e.detail !== 'crash') Sfx.crashStop(); if (e.detail === 'crash') { size(); draw(state === 'run' ? curM : 1, false); } });
   Bank.onReset.push(() => { cancelAnimationFrame(raf); state = 'idle'; rounds = wins = losses = 0; staked = returned = 0; best = 0; base = null; lastX = []; cashed = null; curM = 1; stripRender(); G('hist').innerHTML = EMPTY_LI; msg(''); mult('1.00x', 'сделайте ставку', ''); draw(1, false); stats(); buttons(); });
   mult('1.00x', 'сделайте ставку', ''); stats(); buttons();
 })();
