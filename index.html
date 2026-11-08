@@ -1320,7 +1320,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
           <div class="field" style="margin-top:10px"><label class="label">Бай-ин, $ (из баланса)</label><input type="number" id="pk-buy" min="1" step="1" value="50"></div>
           <div class="field" style="margin-top:10px"><label class="label">Большой блайнд, $</label>
             <select id="pk-bb"><option value="0.5">0.50 (малый 0.25)</option><option value="1" selected>1.00 (малый 0.50)</option><option value="2">2.00 (малый 1.00)</option><option value="5">5.00 (малый 2.50)</option></select></div>
-          <button id="pk-sit" style="margin-top:14px;width:100%">Сесть за стол</button>
+          <button id="pk-sit" style="margin-top:14px;width:100%">Сесть за стол</button><div class="hint" id="pk-sit-err" style="color:var(--down);margin-top:8px;display:none;font-size:13px;font-weight:700"></div>
           <div class="hint" style="margin-top:10px">Боты видят только свои карты и открытые карты стола. Колода тасуется криптографическим генератором. В онлайне раздачу ведёт хозяин стола, он технически может видеть все карты. Нужен интернет (соединение через WebRTC).</div>
         </div>
         <button class="ghost" id="pk-exitroom" style="display:none;margin-top:10px;width:100%">Выйти из комнаты</button>
@@ -1725,25 +1725,26 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
 
   /* ---------- запуск игры ---------- */
   function buildBuy() {
+    const fail = m => { status(m, 'var(--down)'); const e = G('sit-err'); e.textContent = m; e.style.display = 'block'; return null; }, okNote = () => { G('sit-err').style.display = 'none'; };
     let buy = Math.floor(Number(G('buy').value) * 100) / 100; const bal = Math.floor(Bank.bal * 100) / 100;
     if (!isFinite(buy) || buy < 1) buy = Math.min(1, bal); if (buy > bal) buy = bal;
     let bb = Number(G('bb').value);
-    if (buy < 1) { status('Нужно минимум $1 на балансе.', 'var(--down)'); return null; }
+    if (buy < 1) return fail('Нужно минимум $1 на балансе. Нажмите «Начать заново с $100» вверху.');
     if (buy < bb * 5) {
       // подбираем самый крупный блайнд, который укладывается в бай-ин (минимум 5 больших блайндов)
       const all = [...G('bb').options].map(o => Number(o.value)), ok = all.filter(v => buy >= v * 5);
-      if (!ok.length) { status('Не хватает денег: на балансе $' + bal.toFixed(2) + ', а для самого маленького блайнда нужно минимум $' + (Math.min(...all) * 5).toFixed(2) + '.', 'var(--down)'); return null; }
+      if (!ok.length) return fail('Не хватает денег: на балансе $' + bal.toFixed(2) + ', а для самого маленького блайнда нужно минимум $' + (Math.min(...all) * 5).toFixed(2) + '.');
       bb = Math.max(...ok); G('bb').value = String(bb);
       status('Бай-ин $' + buy.toFixed(2) + ' ограничен балансом, блайнд снижен до $' + bb.toFixed(2) + '.', 'var(--gold)');
     }
-    return { buy, bb };
+    okNote(); return { buy, bb };
   }
   function startGame() {
     if (S || role === 'guest') return;
     const b = buildBuy(); if (!b) return;
     const bots = [], taken = new Set([role === 'host' ? myName() : 'Вы', ...remotes.map(r => r.name)]);
     botCfg.slice(0, Number(G('nb').value)).forEach((c, i) => { let nm = (c.name || '').trim().slice(0, 14) || 'Бот ' + (i + 1), base = nm, k = 2; while (taken.has(nm)) nm = base + ' ' + k++; taken.add(nm); const ks = Object.keys(STYLES); bots.push({ name: nm, kind: 'bot', level: c.level, style: c.style && c.style !== 'auto' ? c.style : ks[randInt(ks.length)] }); });
-    if (!bots.length && !remotes.length) { status('Добавьте хотя бы одного бота или дождитесь друга.', 'var(--down)'); return; }
+    if (!bots.length && !remotes.length) { status('Добавьте хотя бы одного бота или дождитесь друга.', 'var(--down)'); const e = G('sit-err'); e.textContent = 'Добавьте хотя бы одного бота или дождитесь друга.'; e.style.display = 'block'; return; }
     G('buy').value = b.buy; Bank.add(-b.buy); Bank.escrow = b.buy; try { localStorage.setItem(TKEY, String(b.buy)); } catch (e) {}
     const launch = () => {
       const P = [{ name: role === 'host' ? myName() : 'Вы', kind: 'host', stack: b.buy }];
