@@ -299,7 +299,59 @@ header.top{padding-top:env(safe-area-inset-top)}
 .bface .eye{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
 @keyframes blink{0%,91%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
 .seat.folded .bface{opacity:.55;filter:grayscale(.6) drop-shadow(0 3px 5px rgba(0,0,0,.45))}
-@media (max-width:640px){.bface{width:40px;height:40px}}</style>
+@media (max-width:640px){.bface{width:40px;height:40px}}
+/* ===== кости (перудо) ===== */
+.die{width:46px;height:46px;background:linear-gradient(145deg,#fff,#e6e6dd);border-radius:10px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;gap:2px;box-shadow:0 3px 8px rgba(0,0,0,.45),inset 0 -2px 0 rgba(0,0,0,.12);flex:none}
+.die i{border-radius:50%;margin:10%}
+.die i.on{background:#222}.die i.on.red{background:#c4262e}
+.die.sm{width:24px;height:24px;padding:3px;border-radius:5px;gap:1px}
+.die.hid{background:repeating-linear-gradient(45deg,#2c4aa8 0 5px,#233c8a 5px 10px);border:2px solid #fafafa}
+.die.hit{outline:3px solid var(--gold);outline-offset:1px}
+.die.roll{animation:tumble 1s cubic-bezier(.2,.7,.3,1) both}
+@keyframes tumble{0%{transform:translateY(-34px) rotate(-220deg) scale(.7);opacity:0}60%{transform:translateY(5px) rotate(18deg);opacity:1}100%{transform:none;opacity:1}}
+.ddice{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:26px;max-width:170px}
+.mydice{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:48px}
+.bidbox{background:rgba(0,0,0,.38);border-radius:16px;padding:10px 22px;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:190px}
+.bidbox .big{display:flex;align-items:center;gap:10px;font-size:30px;font-weight:900;color:#fff7d6}
+.bidbox small{color:#d6ffe9;font-size:12px}
+#dc-bots{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.dctl{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:560px}
+.dctl .row2{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:44px;height:44px;padding:0;font-size:22px;min-height:0;box-shadow:0 3px 0 #1a212c;background:#2b3442;color:var(--text)}
+.qty b{min-width:44px;text-align:center;font-size:26px;font-variant-numeric:tabular-nums}
+.fbtns{display:flex;gap:6px}
+.fbtn{padding:5px;background:#2b3442;box-shadow:0 3px 0 #1a212c;border-radius:10px;min-height:0}
+.fbtn.sel{background:var(--gold);box-shadow:0 3px 0 #1f9c57}
+.fbtn .die{width:36px;height:36px;padding:5px;box-shadow:none}
+@media (max-width:640px){.die{width:40px;height:40px}.die.sm{width:20px;height:20px;padding:2px}.fbtn .die{width:32px;height:32px}.ddice{max-width:120px}.bidbox .big{font-size:24px}}
+/* длинные числа не должны ломать шапку и панели */
+.bank{max-width:100%;overflow:hidden}
+#bal{overflow-wrap:anywhere;max-width:100%}
+.hist .b,.stat b{overflow-wrap:anywhere}
+/* ===== переключатель режима костей, крэпс ===== */
+.modesw{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.modebtn{background:var(--panel);color:var(--muted);box-shadow:none;border:1px solid var(--line);font-size:15px;padding:10px 18px;min-height:44px}
+.modebtn.on{background:var(--gold);color:#052b14;border-color:var(--gold)}
+.dpbots{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.die.md{width:34px;height:34px;padding:5px;border-radius:7px}
+.die.big{width:64px;height:64px;padding:9px;border-radius:13px}
+.puck{width:64px;height:64px;border-radius:50%;background:#222;color:#fff;border:4px solid #888;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;text-align:center}
+.puck.on{background:#f7f7f2;color:#111;border-color:var(--gold)}
+.dxdice{display:flex;gap:12px}
+.cbets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;width:100%;max-width:640px}
+.cbet{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;background:#1d2a22;color:var(--text);box-shadow:none;border:1px solid #2f4a3a;border-radius:12px;padding:10px 12px;font-size:14px;min-height:74px;position:relative}
+.cbet b{font-size:14px}.cbet small{font-size:11px;font-weight:500;color:var(--muted);line-height:1.25}
+.cbet .amt{position:absolute;right:8px;top:6px;background:var(--gold);color:#052b14;border-radius:999px;font-size:12px;font-weight:900;padding:1px 8px}
+.cbet .amt:empty{display:none}
+.cbet.has{border-color:var(--gold)}
+.cbet:disabled{opacity:.45}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#pg-dice input[type=text]{font:inherit;font-size:16px;font-weight:600;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);width:100%}
+#pg-dice input[type=text]:focus{outline:2px solid var(--gold);outline-offset:1px}
+#dp-lobby{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;font-size:13px;line-height:1.5}
+#pg-dice .code{font-size:20px;letter-spacing:.2em;color:var(--gold)}
+#dp-log li{display:block;font-size:13px;line-height:1.35}</style>
 </head>
 <body>
 <header class="top">
@@ -311,6 +363,7 @@ header.top{padding-top:env(safe-area-inset-top)}
       <a href="#crash" data-p="crash">Краш</a>
       <a href="#roulette" data-p="roulette">Рулетка</a>
       <a href="#poker" data-p="poker">Покер</a>
+      <a href="#dice" data-p="dice">Кости</a>
     </nav>
     <div class="bank">
       <div class="label">Баланс (виртуальные деньги)</div>
@@ -329,6 +382,7 @@ header.top{padding-top:env(safe-area-inset-top)}
   <section class="page" id="pg-crash"></section>
   <section class="page" id="pg-roulette"></section>
   <section class="page" id="pg-poker"></section>
+  <section class="page" id="pg-dice"></section>
 </main>
 
 <script>
@@ -367,7 +421,7 @@ function fmt(v, dec) {
   if (a < Math.pow(10, -dec) / 2) {
     let ex = Math.floor(Math.log10(a)), d = Math.round(a / Math.pow(10, ex));
     if (d >= 10) { d = 1; ex++; }
-    if (-ex > 40 || !isFinite(ex)) return sg + '$0.(нулей: ' + (-ex - 1) + ')' + d;
+    if (-ex > 6 || !isFinite(ex)) return sg + '$0.(нулей: ' + (-ex - 1) + ')' + d;
     return sg + '$' + a.toFixed(Math.min(100, -ex)) ;
   }
   const [i, f] = a.toFixed(dec).split('.');
@@ -540,12 +594,41 @@ const Sfx = (() => {
       for (let i = 0; i < 22; i++) swish(.05 + Math.random() * .75 * T, .12 + Math.random() * .12, 1200 + Math.random() * 1500, 2200 + Math.random() * 2200, .035 + Math.random() * .03);
       swish(.78 * T, .15 * T, 3500, 1200, .08); tap(.92 * T, .9);
     }
-  }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
+  }  // ---- кости: настоящее звучание — встряска в стакане, полёт, подскоки кубиков по сукну, удар стакана ----
+  function dieKnock(t, a) {
+    const c = get(); if (!c) return; const t0 = c.currentTime + t, p = .9 + Math.random() * .25;
+    burst(t, .02, 1700 * p + Math.random() * 500, 1.6, .2 * a, 'bandpass');            // щелчок пластика о сукно
+    burst(t, .05, 420 * p, .9, .16 * a, 'lowpass');                                     // глухое «тук» стола
+    const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(260 * p, t0); o.frequency.exponentialRampToValueAtTime(130 * p, t0 + .06);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.14 * a, t0 + .003); g.gain.exponentialRampToValueAtTime(.0001, t0 + .07);
+    o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + .09);
+    const r = c.createOscillator(), rg = c.createGain(); r.type = 'sine'; r.frequency.value = 3300 * p;   // лёгкий звон углов кубика
+    rg.gain.setValueAtTime(.0001, t0); rg.gain.exponentialRampToValueAtTime(.025 * a, t0 + .002); rg.gain.exponentialRampToValueAtTime(.0001, t0 + .03);
+    r.connect(rg); rg.connect(out); r.start(t0); r.stop(t0 + .05);
+  }
+  function diceRoll(n) {
+    if (!get()) return; n = Math.max(1, Math.min(5, n || 2));
+    let t = 0;                                   // встряхивание: частые лёгкие «клац» в стакане, нарастают и стихают
+    while (t < .75) { const env = Math.sin(Math.PI * Math.min(1, t / .75 * 1.05)); burst(t, .012, 2300 + Math.random() * 2600, 2.5, .05 + .11 * env * (.5 + Math.random() * .5), 'bandpass'); t += .022 + Math.random() * .035; }
+    swish(.7, .22, 700, 2600, .045);            // полёт кубиков по воздуху
+    for (let i = 0; i < n; i++) {                // приземление каждого кубика и затухающие подскоки
+      let tt = .95 + i * .11 + Math.random() * .04, a = .9 - i * .06, dt = .11;
+      for (let k = 0; k < 4; k++) { dieKnock(tt, a); tt += dt; dt *= .62; a *= .55; }
+    }
+    for (let k = 0; k < 5; k++) burst(1.5 + k * .06 + Math.random() * .03, .01, 3500 + Math.random() * 1500, 3, .035);   // затихающее шуршание
+  }
+  function diceBid() { if (!get()) return; dieKnock(0, .55); }
+  function diceSlam() {
+    if (!get()) return; dieKnock(0, 1.2); burst(0, .18, 380, .8, .38, 'lowpass');
+    const c = ctx, t0 = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(130, t0); o.frequency.exponentialRampToValueAtTime(48, t0 + .16);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.32, t0 + .004); g.gain.exponentialRampToValueAtTime(.0001, t0 + .2); o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + .22);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
   return {
     get on() { return on; }, get state() { return ctx ? ctx.state : 'none'; },
     unlock() { const c = get(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {} if (c.state === 'suspended') c.resume(); },
     crashStart, crashUpdate, crashStop, crashBoom,
-    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop, rlSettle, shuffleKind,
+    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop, rlSettle, shuffleKind, diceRoll, diceBid, diceSlam,
     setOn(v) { on = v; try { localStorage.setItem('casino_sfx', v ? '1' : '0'); } catch (e) {} },
     win(big) { [0, 4, 7, 12].forEach((s, i) => voice(N(s + 12), i * .1, .9, .2, 'bell')); if (big) [0, 4, 7].forEach(s => voice(N(s + 24), .45, 1.2, .12, 'bell')); },
     lose() { [-5, -8, -12].forEach((s, i) => voice(N(s), i * .22, .8, .26, 'dark')); },
@@ -626,7 +709,7 @@ function histPush(ul, html, max) {
 const EMPTY_LI = '<li class="empty" style="display:block;background:none;border:0;animation:none">Пока пусто</li>';
 
 /* ---- страницы по #hash ---- */
-const PAGES = ['coin', 'x2', 'crash', 'roulette', 'poker'];
+const PAGES = ['coin', 'x2', 'crash', 'roulette', 'poker', 'dice'];
 function route() {
   let p = location.hash.replace('#', ''); if (!PAGES.includes(p)) p = 'coin';
   PAGES.forEach(id => $('#pg-' + id).classList.toggle('on', id === p));
@@ -662,7 +745,7 @@ function createCoin(root, cfg) {
       <div class="ctl">
         <div class="ctl2">
           <div class="field"><label class="label">Шанс (фиксированный)</label><div style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-weight:700;line-height:1.35">${cfg.upText}: ${cfg.chance}%<br>${cfg.downText}: ${+(100 - cfg.chance).toFixed(1)}%</div></div>
-          ${cfg.lockPct ? '<div class="field"><label class="label">Ставка (фиксированная)</label><div style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-weight:700;line-height:1.35">Весь баланс<br>всё на кон</div></div>' : `<div class="field"><label class="label">Ставка, $</label>
+          ${cfg.lockPct ? '<div class="field"><label class="label">Ставка (фиксированная)</label><div style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-weight:700;line-height:1.35">Весь баланс</div></div>' : `<div class="field"><label class="label">Ставка, $</label>
             <input type="number" id="${uid}-pct" min="0.01" step="1" value="1">
             <div class="quick" style="flex-wrap:wrap"><button data-q="1">+$1</button><button data-q="10">+10</button><button data-q="25">+25</button><button data-q="50">+50</button><button data-q="100">+100</button><button data-q="500">+500</button><button data-q="3000">+3000</button><button data-q="10000">+10000</button><button data-q="max">Всё</button><button data-q="reset">Сброс</button></div></div>`}
         </div>
@@ -1891,6 +1974,633 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   try { const t = Number(localStorage.getItem(TKEY)); if (isFinite(t) && t > 0) { Bank.bal = Math.min(BIG, Bank.bal + t); Bank.save(); } localStorage.removeItem(TKEY); } catch (e) {}
   window.__pk = { faceHtml, state: () => S, view: () => V, role: () => role, evalCards, equity, makeRange, decide, catOf, CATN };
   lobbyRefresh(); resetTableUi();
+})();
+
+/* ============ КОСТИ: выбор режима — перудо (боты и онлайн) или крэпс ============ */
+(function () {
+  const pg = $('#pg-dice');
+  pg.innerHTML = '<div class="modesw"><button class="modebtn" data-m="peru">Перудо · боты и онлайн</button><button class="modebtn" data-m="craps">Крэпс · против казино</button></div><div id="dc-peru"></div><div id="dc-craps" style="display:none"></div>';
+  const setMode = m => {
+    $('#dc-peru').style.display = m === 'peru' ? 'block' : 'none'; $('#dc-craps').style.display = m === 'craps' ? 'block' : 'none';
+    pg.querySelectorAll('.modebtn').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    try { localStorage.setItem('casino_dice_mode', m); } catch (e) {}
+  };
+  pg.querySelectorAll('.modebtn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.m)));
+
+  /* ---------- общее для обоих режимов ---------- */
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = v => fmt(v, 2), r2 = v => Math.round(v * 100) / 100;
+  const LEVELS = { easy: 'Легкая', mid: 'Средняя', hard: 'Сложная', genius: 'Гений математики' };
+  const CALM = { easy: 0, mid: .35, hard: .7, genius: .93 }, FACEBS = { easy: 0, mid: .15, hard: .5, genius: .85 };
+  const NAMES = ['Brandon', 'Kimberly', 'Cynthia', 'Alexander', 'Dorothy', 'John', 'Michelle', 'Dennis', 'Maria', 'Charles', 'Nora', 'Victor'];
+  const FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  const FAST = () => (window.__dcFast ? .02 : 1);
+  const faceHtml = o => window.__pk.faceHtml(o);
+  function dieHtml(v, cls) {
+    const L = [[4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]][v - 1]; let h = '';
+    for (let k = 0; k < 9; k++) h += '<i' + (L.includes(k) ? ' class="on' + (v === 1 ? ' red' : '') + '"' : '') + '></i>';
+    return '<div class="die ' + (cls || '') + '">' + h + '</div>';
+  }
+  const hidDie = cls => '<div class="die hid ' + (cls || '') + '"></div>';
+  // лицо бота: чем сложнее уровень, тем спокойнее выражение и лучше блеф
+  function showFace(p, felt, story) {
+    const lv = p.level, calm = lv in CALM ? CALM[lv] : .35, bs = lv in FACEBS ? FACEBS[lv] : .15; let m;
+    if (story === 'bluff' && Math.random() < bs) m = Math.random() < .65 ? 'smug' : 'neutral';
+    else m = Math.random() < 1 - calm ? felt : 'neutral';
+    p.face = { m, amp: Math.round((1 - .55 * calm) * 100) / 100 };
+  }
+  // P(X >= m), X ~ Binomial(n, p)
+  function tail(m, n, p) {
+    if (m <= 0) return 1; if (m > n) return 0;
+    let pk = Math.pow(1 - p, n), s = 0; const pm = [pk];
+    for (let k = 1; k <= n; k++) { pk = pk * (n - k + 1) / k * p / (1 - p); pm.push(pk); }
+    for (let k = m; k <= n; k++) s += pm[k]; return Math.min(1, s);
+  }
+  const validBid = (q, f, bid, total) => q >= 1 && q <= total && f >= 1 && f <= 6 && (!bid || q > bid.q || (q === bid.q && f > bid.f));
+  const mood = pt => pt >= .7 ? 'smug' : pt >= .45 ? 'neutral' : pt >= .25 ? 'worried' : 'nervous';
+
+  initPeru($('#dc-peru'));
+  initCraps($('#dc-craps'));
+  let saved = 'peru'; try { saved = localStorage.getItem('casino_dice_mode') || 'peru'; } catch (e) {}
+  setMode(saved === 'craps' ? 'craps' : 'peru');
+
+  /* ====================== ПЕРУДО (кости обмана) ====================== */
+  function initPeru(root) {
+    const G = s => $('#dp-' + s, root), DKEY = 'casino100_dice';
+    const PeerCls = () => window.__FakePeer || window.Peer;
+    const send = (c, m) => { try { c.send(m); } catch (e) {} };
+    const pl = n => n === 1 ? 'кость' : n < 5 ? 'кости' : 'костей';
+    let S = null, V = null, timer = null, nextTimer = null, role = 'solo', peer = null, hostConn = null, lobbyNames = [], remotes = [], hostCode = '', seatWait = null, myAnte = 0, paidGid = '', lastRound = -1, lastPhase = '', lastBid = '', lastKey = '', selQ = 1, selF = 1;
+    const NOISE = { easy: .28, mid: .12, hard: .05, genius: 0 }, CHAL = { easy: .3, mid: .34, hard: .38, genius: .42 }, BLUFFP = { easy: .04, mid: .1, hard: .18, genius: .24 };
+
+    root.innerHTML = `
+    <h2 class="ptitle">Перудо: кости обмана · боты и онлайн</h2>
+    <div class="grid3">
+      <aside class="panel">
+        <div id="dp-setup">
+          <div class="field"><label class="label">Ваше имя (для онлайна)</label><input type="text" id="dp-name" maxlength="14" placeholder="Игрок"></div>
+          <div id="dp-onl" style="margin-top:10px">
+            <button class="sec" id="dp-host" style="width:100%">Создать онлайн-стол</button>
+            <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="text" id="dp-code" maxlength="5" placeholder="Код стола" style="text-transform:uppercase"><button class="sec" id="dp-join" style="padding:10px 16px">Войти</button></div>
+          </div>
+          <div id="dp-lobby" style="display:none"></div>
+          <div id="dp-cfg">
+            <div class="field" style="margin-top:10px"><label class="label">Количество ботов</label><select id="dp-nb"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div>
+            <div class="field" style="margin-top:10px"><label class="label">Сложность ботов</label><select id="dp-lv"></select></div>
+            <div class="field" style="margin-top:10px"><label class="label">Ставка за вход, $</label><input type="number" id="dp-ante" min="1" step="1" value="10"></div>
+            <button id="dp-sit" style="margin-top:14px;width:100%">Сесть за стол</button>
+            <div class="hint" id="dp-err" style="color:var(--down);margin-top:8px;display:none;font-size:13px;font-weight:700"></div>
+          </div>
+          <button class="ghost" id="dp-exitroom" style="display:none;margin-top:10px;width:100%">Выйти из комнаты</button>
+          <div class="hint" style="margin-top:12px;text-align:left">У каждого по 5 скрытых костей. По кругу называйте ставку: «сколько костей с гранью X лежит у всех вместе». Следующий либо повышает ставку (больше костей, либо столько же, но грань выше), либо говорит «Не верю!». Кто ошибся, теряет кость. Последний с костями забирает банк.</div>
+        </div>
+        <div id="dp-stats" style="display:none">
+          <div class="label">Раунд</div><div class="bigcount" id="dp-round">0</div>
+          <div class="stat"><span>Костей на столе</span><b id="dp-total">0</b></div>
+          <div class="stat"><span>Ваших костей</span><b id="dp-mine">0</b></div>
+          <div class="stat"><span>Ставка за вход</span><b id="dp-ante2">$0.00</b></div>
+          <div class="stat"><span>Банк</span><b id="dp-pot">$0.00</b></div>
+          <button class="ghost" id="dp-leave" style="margin-top:12px;width:100%">Выйти из-за стола</button>
+        </div>
+      </aside>
+      <section class="center">
+        <div class="felt">
+          <div id="dp-bots" class="dpbots"></div>
+          <div class="bidbox" id="dp-bid"><small>Сядьте за стол</small></div>
+          <div class="seat" style="min-height:0"><div class="mydice" id="dp-my"></div><div class="nm"><span id="dp-myname">Вы</span></div></div>
+        </div>
+        <div id="dp-status" class="msg" style="min-height:26px">Выберите количество ботов или создайте онлайн-стол.</div>
+        <div class="dctl">
+          <div class="row2"><div class="qty"><button class="sec" id="dp-qm">−</button><b id="dp-qv">1</b><button class="sec" id="dp-qp">+</button></div><div class="fbtns" id="dp-faces"></div></div>
+          <div class="row2"><button id="dp-bidbtn" disabled>Ставка</button><button class="red" id="dp-liar" disabled>Не верю!</button></div>
+        </div>
+      </section>
+      <aside class="panel"><div class="label" style="margin-bottom:10px">Ход игры</div><ul id="dp-log" class="hist" style="gap:4px"></ul></aside>
+    </div>`;
+    G('lv').innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '"' + (k === 'mid' ? ' selected' : '') + '>' + LEVELS[k] + '</option>').join('');
+    G('faces').innerHTML = [1, 2, 3, 4, 5, 6].map(f => '<button class="fbtn" data-f="' + f + '">' + dieHtml(f, '') + '</button>').join('');
+
+    const status = (t, c) => { G('status').textContent = t; G('status').style.color = c || ''; };
+    const fail = m => { status(m, 'var(--down)'); const e = G('err'); e.textContent = m; e.style.display = 'block'; };
+    const myName = () => (G('name').value.trim() || 'Игрок').slice(0, 14);
+    const log = (t, sys, noSend) => {
+      const ul = G('log'); ul.insertAdjacentHTML('afterbegin', '<li' + (sys ? ' style="color:var(--gold);font-weight:700"' : '') + '>' + t + '</li>'); while (ul.children.length > 300) ul.removeChild(ul.lastChild);
+      if (!noSend) remotes.forEach(r => send(r.conn, { t: 'log', text: t, sys: !!sys }));
+    };
+
+    /* ---------- логика игры (хозяин) ---------- */
+    const totalDice = () => S.P.reduce((a, p) => a + (p.out ? 0 : p.n), 0);
+    const alive = () => S.P.map((p, i) => i).filter(i => !S.P[i].out);
+    const nextAlive = i => { const n = S.P.length; for (let k = 1; k <= n; k++) { const j = (i + k) % n; if (!S.P[j].out) return j; } return i; };
+    const noHumans = () => !S.P.some(p => p.kind !== 'bot' && !p.out);
+
+    function startRound() {
+      clearTimeout(timer); clearTimeout(nextTimer);
+      S.round++; S.bid = null; S.phase = 'bid'; S.result = null;
+      S.P.forEach(p => { p.dice = p.out ? [] : Array.from({ length: p.n }, () => randInt(6) + 1); });
+      S.turn = S.P[S.lead].out ? nextAlive(S.lead) : S.lead;
+      log('— Раунд ' + S.round + ': костей на столе ' + totalDice() + ', начинает ' + esc(S.P[S.turn].name) + ' —', true);
+      S.P.forEach(p => { if (p.kind === 'bot' && !p.out) showFace(p, 'neutral', null); });
+      sync(); schedule();
+    }
+    function schedule() {
+      clearTimeout(timer); if (!S || S.phase !== 'bid') return; const p = S.P[S.turn], i = S.turn;
+      if (p.kind === 'bot') timer = setTimeout(() => { if (!S || S.phase !== 'bid' || S.turn !== i) return; const d = botDecide(p); act(i, d.a, d.q, d.f); }, (noHumans() ? 350 : 1800 + Math.random() * 2200 + (S.bid && S.bid.q > totalDice() / 3 ? 1200 : 0)) * FAST());
+      else if (p.kind === 'remote') timer = setTimeout(() => { if (S && S.phase === 'bid' && S.turn === i) { log(esc(p.name) + ' не ответил за 60 секунд', true); if (S.bid) act(i, 'challenge'); else act(i, 'bid', 1, 1 + randInt(6)); } }, 60000);
+    }
+    function botDecide(p) {
+      const total = totalDice(), own = p.dice, cnt = f => own.filter(d => d === f).length, M = total - own.length, bid = S.bid, lv = p.level;
+      const prob = (q, f) => tail(q - cnt(f), M, 1 / 6);
+      if (!bid) {
+        let bf = 1, bc = -1; for (let f = 1; f <= 6; f++) { const c = cnt(f) + Math.random() * .6; if (c > bc) { bc = c; bf = f; } }
+        let q = Math.max(1, cnt(bf) + Math.floor(M / 6 + (lv === 'easy' ? Math.random() * 2 : 0)));
+        if (Math.random() < BLUFFP[lv]) { bf = 1 + randInt(6); q = Math.max(1, Math.round(total / 6)); }
+        return { a: 'bid', q: Math.min(q, total), f: bf };
+      }
+      const nz = NOISE[lv], est = Math.max(0, Math.min(1, prob(bid.q, bid.f) + (Math.random() - .5) * 2 * nz)), cands = [];
+      for (let q = bid.q; q <= Math.min(total, bid.q + 3); q++) for (let f = 1; f <= 6; f++) if (validBid(q, f, bid, total)) cands.push({ q, f, p: prob(q, f) });
+      if (!cands.length || est < CHAL[lv]) return { a: 'challenge' };
+      let pick = null;
+      if (Math.random() < BLUFFP[lv]) { const bl = cands.filter(c => c.p >= .12 && c.p <= .5); if (bl.length) pick = bl[randInt(bl.length)]; }
+      if (!pick) {
+        const good = cands.filter(c => c.p >= .5).sort((x, y) => (x.q - y.q) || (y.p - x.p));
+        if (good.length) pick = lv === 'easy' ? good[randInt(Math.min(3, good.length))] : good[0];
+        else if (est < .5) return { a: 'challenge' };
+        else pick = cands.sort((x, y) => (x.q - y.q) || (y.p - x.p))[0];
+      }
+      return { a: 'bid', q: pick.q, f: pick.f };
+    }
+    function act(i, a, q, f) {
+      if (!S || S.phase !== 'bid' || S.turn !== i) return; clearTimeout(timer);
+      const p = S.P[i], total = totalDice();
+      if (a === 'bid') {
+        q = Math.floor(Number(q)); f = Math.floor(Number(f));
+        if (!validBid(q, f, S.bid, total)) { if (p.kind === 'bot') { if (S.bid) act(i, 'challenge'); else schedule(); } return; }
+        S.bid = { q, f, by: i }; log(esc(p.name) + ': ' + q + ' × ' + FACES[f]);
+        if (p.kind === 'bot') { const pt = tail(q - p.dice.filter(d => d === f).length, total - p.dice.length, 1 / 6); showFace(p, mood(pt), pt < .35 ? 'bluff' : null); }
+        S.P.forEach((o, k) => { if (k !== i && o.kind === 'bot' && !o.out && Math.random() < .7) { const pt = tail(q - o.dice.filter(d => d === f).length, total - o.dice.length, 1 / 6); showFace(o, pt < .3 ? 'smug' : pt > .7 ? 'worried' : 'neutral', null); } });
+        S.turn = nextAlive(i); sync(); schedule();
+      } else if (a === 'challenge') {
+        if (!S.bid || S.bid.by === i) return; resolve(i);
+      }
+    }
+    function resolve(ci) {
+      const b = S.bid, cnt = S.P.reduce((a, p) => a + (p.out ? 0 : p.dice.filter(d => d === b.f).length), 0), ok = cnt >= b.q, loser = ok ? ci : b.by, L = S.P[loser];
+      let elim = false; if (!L.out) { L.n = Math.max(0, L.n - 1); if (L.n === 0) { L.out = true; elim = true; } }
+      S.result = { challenger: ci, bidder: b.by, q: b.q, f: b.f, count: cnt, ok, loser, elim };
+      S.phase = 'reveal'; clearTimeout(timer);
+      log(esc(S.P[ci].name) + ' не верит! На столе ' + cnt + ' × ' + FACES[b.f] + ' (заявлено ' + b.q + '). ' + esc(L.name) + ' теряет кость' + (elim ? ' и выбывает' : '') + '.', true);
+      S.P.forEach((p, k) => { if (p.kind !== 'bot') return; if (k === loser) showFace(p, elim ? 'sad' : (Math.random() < .5 ? 'angry' : 'sad'), null); else if (k === (ok ? b.by : ci)) showFace(p, 'happy', null); else showFace(p, 'neutral', null); });
+      sync();
+      nextTimer = setTimeout(() => {
+        if (!S) return; const al = alive();
+        if (al.length <= 1) endGame(al[0]); else { S.lead = L.out ? nextAlive(loser) : loser; startRound(); }
+      }, (noHumans() ? 1400 : 7500) * FAST());
+    }
+    function endGame(w) {
+      clearTimeout(timer); clearTimeout(nextTimer); S.phase = 'over'; S.winner = w; const W = S.P[w];
+      log('Победитель: ' + esc(W.name) + ' забирает банк ' + money(S.pot), true);
+      S.P.forEach((p, k) => { if (p.kind === 'bot') showFace(p, k === w ? 'happy' : 'sad', null); });
+      sync();
+    }
+    function viewFor(i) {
+      const rev = S.phase !== 'bid';
+      return { gid: S.gid, me: i, round: S.round, phase: S.phase, turn: S.turn, bid: S.bid, result: S.result, pot: S.pot, ante: S.ante, winner: S.winner, total: totalDice(),
+        players: S.P.map((p, k) => ({ name: p.name, kind: p.kind, level: p.level, n: p.n, out: p.out, face: p.kind === 'bot' ? p.face || null : null, dice: (k === i || (rev && p.dice.length)) ? p.dice : null })) };
+    }
+    function sync() {
+      if (!S) return;
+      remotes.forEach(r => { if (r.seat >= 0 && S.P[r.seat]) send(r.conn, { t: 'view', v: viewFor(r.seat) }); });
+      V = viewFor(0); handleView(V);
+    }
+    function checkAlive(seat) {
+      if (!S || S.phase === 'over') return; const al = alive();
+      if (al.length <= 1) { endGame(al.length ? al[0] : 0); return; }
+      if (S.phase === 'bid' && S.turn === seat) { S.turn = nextAlive(seat); sync(); schedule(); } else sync();
+    }
+
+    /* ---------- отображение (одинаково для хозяина и гостя) ---------- */
+    function seatHtml(p, k, v) {
+      const turn = v.phase === 'bid' && v.turn === k, hl = d => v.result && v.phase !== 'bid' && d === v.result.f ? ' hit' : '';
+      const dice = p.dice ? p.dice.map(d => dieHtml(d, 'sm' + hl(d))).join('') : p.out ? '' : Array.from({ length: p.n }, () => hidDie('sm')).join('');
+      return '<div class="seat' + (p.out ? ' folded' : '') + (turn ? ' turn' : '') + '">' + (p.kind === 'bot' ? faceHtml({ name: p.name, face: p.face, turn }) : '') + '<div class="nm"><span>' + esc(p.name) + '</span></div><div class="ddice">' + dice + '</div><div class="tag">' + (p.out ? 'выбыл' : p.n + ' ' + pl(p.n)) + ' <i style="opacity:.7">' + (p.kind === 'bot' ? LEVELS[p.level] : '') + '</i></div></div>';
+    }
+    function handleView(v) {
+      V = v; render(v);
+      if (v.phase === 'over' && v.gid !== paidGid) {
+        paidGid = v.gid; Bank.escrow = 0; try { localStorage.removeItem(DKEY); } catch (e) {}
+        if (v.winner === v.me) { Bank.add(v.pot); Sfx.win(true); } else { Bank.render(-1); Sfx.lose(); }
+      }
+    }
+    function render(v) {
+      const active = !!v && v.phase !== 'over';
+      G('setup').style.display = active ? 'none' : 'block'; G('stats').style.display = active ? 'block' : 'none';
+      if (!v) { G('bots').innerHTML = ''; G('bid').innerHTML = '<small>Сядьте за стол</small>'; G('my').innerHTML = ''; G('myname').textContent = 'Вы'; lastRound = -1; lastPhase = ''; lastBid = ''; lastKey = ''; controls(null); return; }
+      const me = v.players[v.me];
+      G('bots').innerHTML = v.players.map((p, k) => k === v.me ? '' : seatHtml(p, k, v)).join('');
+      const bk = v.bid ? v.bid.q + ',' + v.bid.f + ',' + v.bid.by : '';
+      G('bid').innerHTML = v.bid ? '<div class="big">' + v.bid.q + ' × ' + dieHtml(v.bid.f, 'md') + '</div><small>ставка: ' + esc(v.players[v.bid.by].name) + '</small>' : '<div class="big" style="font-size:18px">Ставок ещё нет</div><small>Банк ' + money(v.pot) + '</small>';
+      const rollNow = v.round !== lastRound && v.phase === 'bid';
+      const hl = d => v.result && v.phase !== 'bid' && d === v.result.f ? ' hit' : '';
+      G('my').innerHTML = me.dice && me.dice.length ? me.dice.map((d, i) => dieHtml(d, (rollNow ? 'roll' : '') + hl(d)).replace('class="die ', 'style="animation-delay:' + i * 110 + 'ms" class="die ')).join('') : (me.out ? '<span style="color:var(--muted)">Вы выбыли из игры</span>' : '');
+      G('myname').textContent = me.name + ' · ' + me.n + ' ' + pl(me.n);
+      G('round').textContent = v.round; G('total').textContent = v.total; G('mine').textContent = me.n; G('ante2').textContent = money(v.ante); G('pot').textContent = money(v.pot);
+      let txt = '', col = '';
+      if (v.phase === 'bid') { const t = v.players[v.turn]; if (v.turn === v.me) { txt = v.bid ? 'Ваш ход: повысьте ставку или скажите «Не верю!»' : 'Ваш ход: назовите первую ставку'; col = 'var(--gold)'; } else txt = esc(t.name) + (t.kind === 'bot' ? ' думает…' : ' ходит…'); }
+      else if (v.phase === 'reveal') { const r = v.result; txt = esc(v.players[r.challenger].name) + ' не верит. На столе ' + r.count + ' × ' + FACES[r.f] + ' (заявлено ' + r.q + '): ' + esc(v.players[r.loser].name) + ' теряет кость' + (r.elim ? ' и выбывает' : '') + '.'; col = r.loser === v.me ? 'var(--down)' : 'var(--up)'; }
+      else { txt = 'Игра окончена. Победитель: ' + esc(v.players[v.winner].name) + (v.winner === v.me ? ' (вы!) — банк ' + money(v.pot) : ''); col = v.winner === v.me ? 'var(--up)' : 'var(--down)'; }
+      G('status').innerHTML = txt; G('status').style.color = col;
+      if (rollNow) Sfx.diceRoll(Math.min(5, me.n));
+      if (v.phase === 'bid' && bk && bk !== lastBid && v.round === lastRound) Sfx.diceBid();
+      if (v.phase === 'reveal' && lastPhase !== 'reveal') Sfx.diceSlam();
+      lastRound = v.round; lastPhase = v.phase; lastBid = bk;
+      controls(v);
+    }
+    function controls(v) {
+      const myTurn = !!v && v.phase === 'bid' && v.turn === v.me && !v.players[v.me].out;
+      const key = v ? v.round + ':' + v.turn + ':' + (v.bid ? v.bid.q + ',' + v.bid.f : '') : '';
+      if (v && key !== lastKey) { lastKey = key; const b = v.bid; if (!b) { selQ = 1; selF = 1; } else if (b.f < 6) { selQ = b.q; selF = b.f + 1; } else { selQ = b.q + 1; selF = 1; } }
+      G('qv').textContent = selQ;
+      G('faces').querySelectorAll('.fbtn').forEach(b => { b.classList.toggle('sel', Number(b.dataset.f) === selF); b.disabled = !myTurn; });
+      G('qm').disabled = G('qp').disabled = !myTurn;
+      G('bidbtn').disabled = !(myTurn && validBid(selQ, selF, v.bid, v.total)); G('bidbtn').textContent = 'Ставка: ' + selQ + ' × ' + FACES[selF];
+      G('liar').disabled = !(myTurn && v.bid && v.bid.by !== v.me);
+    }
+
+    /* ---------- старт игры ---------- */
+    function startGame() {
+      if (role === 'guest' || (S && S.phase !== 'over')) return;
+      const ante = Math.floor(Number(G('ante').value) * 100) / 100, bal = Math.floor(Bank.bal * 100) / 100, nb = Number(G('nb').value);
+      if (!isFinite(ante) || ante < 1) return fail('Минимальная ставка за вход — $1.');
+      if (ante > bal) return fail('Не хватает денег: на балансе $' + bal.toFixed(2) + '.');
+      if (nb + remotes.length < 1) return fail('Добавьте бота или дождитесь друга.');
+      if (nb + remotes.length + 1 > 6) return fail('За столом максимум 6 игроков.');
+      G('err').style.display = 'none';
+      const launch = () => {
+        const P = [{ name: role === 'host' ? myName() : 'Вы', kind: 'me', n: 5, out: false, dice: [] }];
+        remotes.forEach(r => { r.seat = -1; if (r.ok) { r.seat = P.length; P.push({ name: r.name, kind: 'remote', n: 5, out: false, dice: [] }); } else send(r.conn, { t: 'nope', msg: 'Недостаточно денег для ставки.' }); });
+        const taken = new Set(P.map(p => p.name)); const pool = NAMES.filter(n => !taken.has(n)).sort(() => Math.random() - .5);
+        for (let i = 0; i < nb; i++) P.push({ name: pool[i] || 'Бот ' + (i + 1), kind: 'bot', level: G('lv').value, n: 5, out: false, dice: [], face: { m: 'neutral', amp: 1 } });
+        if (P.length < 2) { status('Никто не сел за стол.', 'var(--down)'); return; }
+        Bank.add(-ante); Bank.escrow = ante; myAnte = ante; try { localStorage.setItem(DKEY, String(ante)); } catch (e) {}
+        S = { gid: String(Date.now()) + randInt(1000), P, ante, pot: r2(ante * P.length), round: 0, lead: randInt(P.length), phase: 'bid', bid: null, turn: 0, result: null, winner: -1 };
+        G('log').innerHTML = ''; log('Стол: ставка за вход ' + money(ante) + ', банк ' + money(S.pot) + '; игроки: ' + P.map(p => esc(p.name)).join(', '), true);
+        startRound();
+      };
+      if (!remotes.length) { launch(); return; }
+      remotes.forEach(r => { r.ok = null; send(r.conn, { t: 'sit', ante }); });
+      status('Ждём подтверждения игроков…');
+      const finish = () => { clearTimeout(seatWait); seatWait = null; remotes.forEach(r => { if (r.ok === null) r.ok = false; }); launch(); };
+      seatWait = setTimeout(finish, 6000);
+      remotes.forEach(r => { r.check = () => { if (seatWait && remotes.every(x => x.ok !== null)) finish(); }; });
+    }
+    function endTable(msg) {
+      clearTimeout(timer); clearTimeout(nextTimer); clearTimeout(seatWait);
+      remotes.forEach(r => send(r.conn, { t: 'end', msg: msg || 'Стол закрыт.', refund: !!(S && S.phase !== 'over') }));
+      if (S && S.phase !== 'over') { Bank.escrow = 0; try { localStorage.removeItem(DKEY); } catch (e) {} Bank.render(-1); }
+      S = null; V = null; remotes.forEach(r => r.seat = -1); render(null); lobbyRefresh(); status(msg || 'Вы встали из-за стола.');
+    }
+
+    /* ---------- сеть ---------- */
+    function lobbyRefresh() {
+      const box = G('lobby'), online = role !== 'solo', names = role === 'host' ? [myName()].concat(remotes.map(r => r.name)) : lobbyNames;
+      G('onl').style.display = online ? 'none' : 'block'; box.style.display = online ? 'block' : 'none';
+      G('cfg').style.display = role === 'guest' ? 'none' : 'block'; G('exitroom').style.display = online ? 'block' : 'none';
+      G('sit').textContent = role === 'host' ? 'Начать игру' : 'Сесть за стол';
+      if (role === 'host') box.innerHTML = 'Код стола: <b class="code">' + hostCode + '</b><br>Игроки: ' + names.map(esc).join(', ') + '<br><span style="color:var(--muted);font-size:12px">Передайте код другу: он вводит его в «Войти». Можно добавить и ботов.</span>';
+      else if (role === 'guest') box.innerHTML = 'Вы в комнате.<br>Игроки: ' + names.map(esc).join(', ') + '<br><span style="color:var(--muted);font-size:12px">Ждём, пока хозяин начнёт игру.</span>';
+    }
+    const broadcastLobby = () => { const names = [myName()].concat(remotes.map(r => r.name)); remotes.forEach(r => send(r.conn, { t: 'lobby', names })); };
+    function newCode() { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += a[randInt(a.length)]; return s; }
+    function createHost(tries) {
+      if (!PeerCls()) { status('Не удалось загрузить сетевой модуль.', 'var(--down)'); return; }
+      hostCode = newCode(); status('Создаём стол…');
+      const pr = new (PeerCls())('dice' + hostCode);
+      pr.on('open', () => { peer = pr; role = 'host'; remotes = []; status('Стол создан. Отправьте код другу: ' + hostCode); lobbyRefresh(); });
+      pr.on('error', e => { if (e.type === 'unavailable-id' && (tries || 0) < 4) { try { pr.destroy(); } catch (x) {} createHost((tries || 0) + 1); } else status('Ошибка сети: ' + (e.type || e) + '. Проверьте интернет.', 'var(--down)'); });
+      pr.on('connection', conn => { const rec = { conn, name: 'Игрок', seat: -1, ok: null }; conn.on('data', m => onHostMsg(rec, m)); conn.on('close', () => dropRemote(rec, 'отключился')); conn.on('error', () => dropRemote(rec, 'отключился')); });
+    }
+    function dropRemote(rec, why) {
+      const idx = remotes.indexOf(rec); if (idx < 0) return;
+      const live = S && S.phase !== 'over' && rec.seat >= 0;
+      if (live) { const p = S.P[rec.seat]; if (p && !p.out) { p.out = true; p.n = 0; p.dice = []; log(esc(p.name) + ' ' + why, true); } }
+      remotes.splice(idx, 1); broadcastLobby(); lobbyRefresh();
+      if (live) checkAlive(rec.seat);
+    }
+    function onHostMsg(rec, m) {
+      if (!m || !m.t) return;
+      if (m.t === 'join') {
+        if (S && S.phase !== 'over') { send(rec.conn, { t: 'nope', msg: 'Игра уже идёт, подождите конца.' }); return; }
+        let nm = String(m.name || 'Игрок').slice(0, 14), base = nm, k = 2; const taken = () => nm === myName() || remotes.some(r => r !== rec && r.name === nm);
+        while (taken()) nm = base + k++;
+        rec.name = nm; if (!remotes.includes(rec)) { if (remotes.length >= 4) { send(rec.conn, { t: 'nope', msg: 'Стол заполнен.' }); return; } remotes.push(rec); }
+        broadcastLobby(); lobbyRefresh();
+      } else if (m.t === 'seat') { rec.ok = !!m.ok; if (rec.check) rec.check(); }
+      else if (m.t === 'bid') { if (S && rec.seat >= 0) act(rec.seat, 'bid', m.q, m.f); }
+      else if (m.t === 'challenge') { if (S && rec.seat >= 0) act(rec.seat, 'challenge'); }
+      else if (m.t === 'leave') dropRemote(rec, 'ушёл из-за стола');
+    }
+    function joinRoom() {
+      const code = G('code').value.trim().toUpperCase(); if (code.length < 4) { status('Введите код стола.', 'var(--down)'); return; }
+      if (!PeerCls()) { status('Не удалось загрузить сетевой модуль.', 'var(--down)'); return; }
+      status('Подключаемся…'); const pr = new (PeerCls())();
+      pr.on('open', () => {
+        const c = pr.connect('dice' + code, { reliable: true }); let opened = false;
+        const to = setTimeout(() => { if (!opened) { status('Не удалось подключиться. Проверьте код и интернет.', 'var(--down)'); try { pr.destroy(); } catch (e) {} } }, 12000);
+        c.on('open', () => { opened = true; clearTimeout(to); peer = pr; hostConn = c; role = 'guest'; lobbyNames = []; status('Подключено. Ждём хозяина…'); lobbyRefresh(); send(c, { t: 'join', name: myName() }); });
+        c.on('data', onGuestMsg); c.on('close', () => guestClosed('Хозяин закрыл соединение.')); c.on('error', () => guestClosed('Ошибка соединения.'));
+      });
+      pr.on('error', e => status(e.type === 'peer-unavailable' ? 'Стол с таким кодом не найден.' : 'Ошибка сети: ' + (e.type || e), 'var(--down)'));
+    }
+    function guestClosed(msg) { if (role !== 'guest') return; if (V && V.phase !== 'over') { Bank.escrow = 0; try { localStorage.removeItem(DKEY); } catch (e) {} } toSolo(msg); }
+    function toSolo(msg) {
+      clearTimeout(timer); clearTimeout(nextTimer);
+      try { if (peer) peer.destroy(); } catch (e) {} peer = null; hostConn = null; remotes = []; role = 'solo'; lobbyNames = []; V = null; S = null;
+      render(null); lobbyRefresh(); status(msg || 'Выберите количество ботов или создайте онлайн-стол.'); Bank.render(0);
+    }
+    function onGuestMsg(m) {
+      if (!m || !m.t) return;
+      if (m.t === 'lobby') { lobbyNames = m.names; lobbyRefresh(); }
+      else if (m.t === 'sit') {
+        const ante = Number(m.ante) || 0, bal = Math.floor(Bank.bal * 100) / 100;
+        if (ante < 1 || ante > bal) { send(hostConn, { t: 'seat', ok: false }); status('Недостаточно денег для ставки $' + ante.toFixed(2) + '.', 'var(--down)'); return; }
+        Bank.add(-ante); Bank.escrow = ante; myAnte = ante; try { localStorage.setItem(DKEY, String(ante)); } catch (e) {}
+        G('log').innerHTML = ''; send(hostConn, { t: 'seat', ok: true });
+      }
+      else if (m.t === 'view') handleView(m.v);
+      else if (m.t === 'log') log(m.text, m.sys, true);
+      else if (m.t === 'nope') status(m.msg || 'Отказано.', 'var(--down)');
+      else if (m.t === 'end') { if (m.refund && V && V.phase !== 'over') { Bank.escrow = 0; Bank.add(myAnte); try { localStorage.removeItem(DKEY); } catch (e) {} } V = null; render(null); status(m.msg || 'Стол закрыт.'); lobbyRefresh(); Bank.render(0); }
+    }
+
+    /* ---------- кнопки ---------- */
+    G('sit').addEventListener('click', startGame);
+    G('host').addEventListener('click', () => createHost(0));
+    G('join').addEventListener('click', joinRoom);
+    G('exitroom').addEventListener('click', () => {
+      if (role === 'guest') { send(hostConn, { t: 'leave' }); toSolo('Вы вышли из комнаты.'); }
+      else if (role === 'host') { remotes.forEach(r => send(r.conn, { t: 'end', msg: 'Хозяин закрыл стол.' })); toSolo('Стол закрыт.'); }
+    });
+    G('leave').addEventListener('click', () => {
+      const playing = V && V.phase !== 'over';
+      if (playing && !confirm('Выйти посреди игры? Ваша ставка за вход сгорит.')) return;
+      if (role === 'guest') { send(hostConn, { t: 'leave' }); if (playing) { Bank.escrow = 0; try { localStorage.removeItem(DKEY); } catch (e) {} } toSolo('Вы встали из-за стола.'); return; }
+      endTable(role === 'host' ? 'Хозяин встал из-за стола, стол закрыт.' : 'Вы встали из-за стола.');
+    });
+    G('qm').addEventListener('click', () => { selQ = Math.max(1, selQ - 1); controls(V); });
+    G('qp').addEventListener('click', () => { selQ = Math.min(V ? V.total : 30, selQ + 1); controls(V); });
+    G('faces').querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => { selF = Number(b.dataset.f); controls(V); }));
+    G('bidbtn').addEventListener('click', () => { if (!V) return; if (role === 'guest') send(hostConn, { t: 'bid', q: selQ, f: selF }); else act(0, 'bid', selQ, selF); });
+    G('liar').addEventListener('click', () => { if (!V) return; if (role === 'guest') send(hostConn, { t: 'challenge' }); else act(0, 'challenge'); });
+    Bank.onReset.push(() => { clearTimeout(timer); clearTimeout(nextTimer); try { localStorage.removeItem(DKEY); } catch (e) {} if (S) { remotes.forEach(r => send(r.conn, { t: 'end', msg: 'Хозяин начал игру заново.' })); S = null; } V = null; G('log').innerHTML = ''; render(null); status('Выберите количество ботов или создайте онлайн-стол.'); });
+    window.addEventListener('beforeunload', () => { try { if (peer) peer.destroy(); } catch (e) {} });
+    try { const t0 = Number(localStorage.getItem(DKEY)); if (isFinite(t0) && t0 > 0) { Bank.bal = Math.min(BIG, Bank.bal + t0); Bank.save(); } localStorage.removeItem(DKEY); } catch (e) {}
+    window.__dp = { state: () => S, view: () => V, role: () => role, viewFor: i => S && viewFor(i), tail, botDecide: p => botDecide(p), act, onHostMsg, addRemote: name => { const sent = []; const rec = { conn: { send: m => sent.push(m) }, name, seat: -1, ok: null, sent }; remotes.push(rec); role = 'host'; hostCode = 'TEST1'; broadcastLobby(); lobbyRefresh(); return rec; } };
+    lobbyRefresh(); render(null);
+  }
+
+  /* ====================== КРЭПС (против казино; онлайн: общие кости, у каждого свои ставки) ====================== */
+  function initCraps(root) {
+    const G = s => $('#dx-' + s, root);
+    const PeerCls = () => window.__FakePeer || window.Peer;
+    const send = (c, m) => { try { c.send(m); } catch (e) {} };
+    const CHIPS = [1, 5, 25, 100];
+    const BETS = {
+      pass: ['Линия Pass', '1:1 · на 7/11 выигрыш, на 2/3/12 проигрыш'],
+      dont: ['Don’t Pass', '1:1 · на 2/3 выигрыш, 12 — ничья'],
+      field: ['Поле', '3,4,9,10,11 — 1:1 · 2 и 12 — 2:1'],
+      any7: ['Любая 7', '4:1 · один бросок'],
+      crap: ['Крэпс 2·3·12', '7:1 · один бросок'],
+      odds: ['Коэфф. за линией', 'честные шансы: 4/10 — 2:1, 5/9 — 3:2, 6/8 — 6:5']
+    };
+    const ROLL_MS = 1500;
+    let chip = 5, point = 0, bets = {}, busy = false, rolls = 0, wins = 0, losses = 0, net = 0, dice = [1, 1];
+    let role = 'solo', peer = null, hostConn = null, remotes = [], lobbyNames = [], hostCode = '', shooterIdx = 0, shooterName = '', iShoot = true, hostBusy = false, botView = null;
+    const bots = ['easy', 'mid', 'hard'].map((lv, i) => ({ name: NAMES[(randInt(NAMES.length) + i * 3) % NAMES.length], level: lv, bank: 100, bet: null, face: { m: 'neutral', amp: 1 } }));
+    const used = new Set(); bots.forEach(b => { while (used.has(b.name)) b.name = NAMES[randInt(NAMES.length)]; used.add(b.name); });
+
+    root.innerHTML = `
+    <h2 class="ptitle">Крэпс: ставки против казино · можно онлайн</h2>
+    <div class="grid3">
+      <aside class="panel">
+        <div id="dx-online">
+          <div class="field"><label class="label">Ваше имя (для онлайна)</label><input type="text" id="dx-name" maxlength="14" placeholder="Игрок"></div>
+          <div id="dx-onl" style="margin-top:10px">
+            <button class="sec" id="dx-host" style="width:100%">Создать онлайн-стол</button>
+            <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="text" id="dx-code" maxlength="5" placeholder="Код стола" style="text-transform:uppercase"><button class="sec" id="dx-join" style="padding:10px 16px">Войти</button></div>
+          </div>
+          <div id="dx-lobby" style="display:none"></div>
+          <button class="ghost" id="dx-exitroom" style="display:none;margin-top:10px;width:100%">Выйти из комнаты</button>
+        </div>
+        <div class="label" style="margin-top:14px">Бросков</div><div class="bigcount" id="dx-n">0</div>
+        <div class="stat"><span>Выиграно ставок</span><b class="up" id="dx-w">0</b></div>
+        <div class="stat"><span>Проиграно ставок</span><b class="dn" id="dx-l">0</b></div>
+        <div class="stat"><span>Итог за сессию</span><b id="dx-net">$0.00</b></div>
+        <div class="stat"><span>Точка</span><b id="dx-pt">—</b></div>
+        <div class="stat"><span>Ставок на столе</span><b id="dx-on">$0.00</b></div>
+        <div class="hint" style="margin-top:12px;text-align:left">Первый бросок («камин-аут»): 7 или 11 — Pass выигрывает, 2, 3, 12 — проигрывает. Любое другое число становится «точкой»: нужно выбросить её снова раньше, чем 7. Don’t Pass играет наоборот. Остальные ставки решаются за один бросок. Онлайн: кубики общие, бросает по очереди каждый (после «семёрки» очередь переходит дальше), ставки у каждого свои.</div>
+      </aside>
+      <section class="center">
+        <div class="felt">
+          <div id="dx-bots" class="dpbots"></div>
+          <div class="row2" style="display:flex;gap:18px;align-items:center;justify-content:center"><div class="puck" id="dx-puck">OFF</div><div class="dxdice" id="dx-dice"></div></div>
+          <div class="hint" id="dx-shooter" style="color:#d6ffe9;min-height:16px"></div>
+        </div>
+        <div id="dx-msg" class="msg" style="min-height:26px">Поставьте фишки и бросайте кости.</div>
+        <div class="chips" id="dx-chips"></div>
+        <div class="cbets" id="dx-bets"></div>
+        <div class="row2"><button id="dx-roll">Бросить кости</button><button class="sec" id="dx-clear">Убрать ставки</button></div>
+      </section>
+      <aside class="panel"><div class="label" style="margin-bottom:10px">История бросков</div><ul id="dx-hist" class="hist"><li class="empty" style="display:block;background:none;border:0;animation:none">Пока пусто</li></ul></aside>
+    </div>`;
+    G('chips').innerHTML = CHIPS.map(c => '<button class="chipb' + (c === chip ? ' sel' : '') + '" data-c="' + c + '">$' + c + '</button>').join('');
+    G('bets').innerHTML = Object.keys(BETS).map(k => '<button class="cbet" data-k="' + k + '"><b>' + BETS[k][0] + '</b><small>' + BETS[k][1] + '</small><span class="amt"></span></button>').join('');
+    G('chips').querySelectorAll('.chipb').forEach(b => b.addEventListener('click', () => { chip = Number(b.dataset.c); G('chips').querySelectorAll('.chipb').forEach(x => x.classList.toggle('sel', x === b)); }));
+    const msg = (t, c) => { G('msg').textContent = t; G('msg').style.color = c || ''; };
+    const myName = () => (G('name').value.trim() || 'Игрок').slice(0, 14);
+    const onTable = () => Object.values(bets).reduce((a, b) => a + b, 0);
+    const nameOf = r => r ? r.name : myName();
+
+    function botSeat(b) {
+      const lab = b.bet ? (b.bet.k === 'pass' ? 'Pass' : 'Don’t') + ' ' + money(b.bet.amt) : 'ждёт';
+      return '<div class="seat">' + faceHtml({ name: b.name, face: b.face, turn: false }) + '<div class="nm"><span>' + esc(b.name) + '</span></div><div class="nm"><span class="stk">' + money(b.bank) + '</span></div><div class="tag">' + lab + ' <i style="opacity:.7">' + LEVELS[b.level] + '</i></div></div>';
+    }
+    function render() {
+      G('bots').innerHTML = (role === 'guest' && botView ? botView : bots).map(botSeat).join('');
+      G('puck').textContent = point ? 'ON ' + point : 'OFF'; G('puck').classList.toggle('on', !!point);
+      if (!busy) G('dice').innerHTML = dice.map(d => dieHtml(d, 'big')).join('');
+      G('n').textContent = rolls; G('w').textContent = wins; G('l').textContent = losses; G('pt').textContent = point || '— (камин-аут)'; G('on').textContent = money(onTable());
+      G('net').textContent = money(net); G('net').className = net >= 0 ? 'up' : 'dn';
+      G('shooter').textContent = role === 'solo' ? '' : 'Бросает: ' + (shooterName || '—') + (iShoot ? ' (вы)' : '');
+      G('bets').querySelectorAll('.cbet').forEach(b => {
+        const k = b.dataset.k, v = bets[k] || 0;
+        b.querySelector('.amt').textContent = v ? money(v) : ''; b.classList.toggle('has', v > 0);
+        b.disabled = busy || ((k === 'pass' || k === 'dont') && !!point) || (k === 'odds' && !(point && bets.pass));
+      });
+      G('roll').disabled = busy || hostBusy || (role !== 'solo' && !iShoot); G('clear').disabled = busy;
+    }
+    function place(k) {
+      if (busy) return;
+      if ((k === 'pass' || k === 'dont') && point) { msg('Pass и Don’t Pass ставятся только на камин-ауте.', 'var(--down)'); return; }
+      if (k === 'pass' && bets.dont || k === 'dont' && bets.pass) { msg('Нельзя ставить на Pass и Don’t Pass одновременно.', 'var(--down)'); return; }
+      if (k === 'odds' && !(point && bets.pass)) { msg('Коэффициент ставится за линией Pass после того, как выпала точка.', 'var(--down)'); return; }
+      let amt = Math.min(chip, Math.floor(Bank.bal * 100) / 100);
+      if (k === 'odds') amt = Math.min(amt, r2(bets.pass * 3 - (bets.odds || 0)));
+      if (amt < .01) { msg(k === 'odds' ? 'Коэффициент не больше 3× от линии Pass.' : 'Не хватает денег на фишку.', 'var(--down)'); return; }
+      Bank.add(-amt); bets[k] = r2((bets[k] || 0) + amt); msg(''); render();
+    }
+    function clearBets() {
+      if (busy) return; let back = 0;
+      Object.keys(bets).forEach(k => { if (!point || (k !== 'pass' && k !== 'dont')) { back += bets[k]; delete bets[k]; } });
+      if (back > 0) Bank.add(back); msg(onTable() > 0 ? 'Ставки на линии после точки убрать нельзя.' : ''); render();
+    }
+    function refundAll() { let back = 0; Object.keys(bets).forEach(k => { back += bets[k]; delete bets[k]; }); if (back > 0) Bank.add(back); }
+    const oddsPay = (pt, a) => r2(a * (pt === 4 || pt === 10 ? 2 : pt === 5 || pt === 9 ? 1.5 : 1.2));
+
+    /* ---- боты: сидят за столом, ставят на линию и реагируют лицом (считает только хозяин/одиночная игра) ---- */
+    function botsPlace() {
+      bots.forEach(b => {
+        if (point || b.bet || b.bank < 1) return; const r = Math.random(), amt = Math.max(1, Math.round(b.bank * (.03 + Math.random() * .07)));
+        if (r < .65) b.bet = { k: 'pass', amt }; else if (r < .9) b.bet = { k: 'dont', amt };
+        if (b.bet) { b.bank = r2(b.bank - b.bet.amt); showFace(b, 'neutral', null); }
+      });
+    }
+    function botsResolve(prev, sum, np) {
+      bots.forEach(b => {
+        if (!b.bet) return; let out = null;
+        if (!prev) { if (b.bet.k === 'pass') out = sum === 7 || sum === 11 ? 'win' : [2, 3, 12].includes(sum) ? 'lose' : null; else out = sum === 2 || sum === 3 ? 'win' : sum === 12 ? 'push' : sum === 7 || sum === 11 ? 'lose' : null; }
+        else { if (sum === prev) out = b.bet.k === 'pass' ? 'win' : 'lose'; else if (sum === 7) out = b.bet.k === 'pass' ? 'lose' : 'win'; }
+        if (out === 'win') { b.bank = r2(b.bank + b.bet.amt * 2); showFace(b, 'happy', null); b.bet = null; }
+        else if (out === 'push') { b.bank = r2(b.bank + b.bet.amt); showFace(b, 'neutral', null); b.bet = null; }
+        else if (out === 'lose') { showFace(b, Math.random() < .5 ? 'angry' : 'sad', null); b.bet = null; if (b.bank < 1) b.bank = 100; }
+        else showFace(b, np ? 'thinking' : 'neutral', null);
+      });
+    }
+
+    /* ---- бросок: хозяин (или одиночная игра) бросает кубики, все клиенты считают свои ставки ---- */
+    function updateShooter() { const humans = [null].concat(remotes), cur = humans[shooterIdx % humans.length]; shooterName = nameOf(cur); iShoot = cur === null; }
+    function hostRoll(rec) {
+      if (hostBusy || busy) return;
+      const humans = [null].concat(remotes), cur = humans[shooterIdx % humans.length]; if (rec !== cur) return;
+      if (role === 'solo' && !onTable()) { msg('Сначала поставьте хотя бы одну ставку.', 'var(--down)'); return; }
+      hostBusy = true; setTimeout(() => { hostBusy = false; render(); }, (ROLL_MS + 500) * FAST());
+      botsPlace();
+      const d1 = randInt(6) + 1, d2 = randInt(6) + 1, sum = d1 + d2, prev = point; let np = prev;
+      if (!prev) { if ([4, 5, 6, 8, 9, 10].includes(sum)) np = sum; } else if (sum === prev || sum === 7) np = 0;
+      const seven = !!prev && sum === 7; botsResolve(prev, sum, np); rolls++;
+      if (seven) shooterIdx++;
+      updateShooter();
+      const snap = bots.map(b => ({ name: b.name, level: b.level, bank: b.bank, bet: b.bet, face: b.face })), nowShooter = humans.length ? [null].concat(remotes)[shooterIdx % ([null].concat(remotes)).length] : null;
+      remotes.forEach(r => send(r.conn, { t: 'roll', d: [d1, d2], prev, point: np, rolls, bots: snap, shooter: shooterName, you: r === nowShooter, seven }));
+      applyRoll({ d: [d1, d2], prev, point: np, rolls, shooter: shooterName, you: nowShooter === null, seven });
+    }
+    function applyRoll(m) {
+      busy = true; dice = m.d; rolls = m.rolls; shooterName = m.shooter; iShoot = role === 'solo' ? true : !!m.you; if (role === 'guest') botView = m.bots;
+      G('dice').innerHTML = dice.map((d, i) => dieHtml(d, 'big roll').replace('class="die ', 'style="animation-delay:' + i * 120 + 'ms" class="die ')).join('');
+      G('bots').innerHTML = (role === 'guest' && botView ? botView : bots).map(botSeat).join(''); G('roll').disabled = true;
+      Sfx.diceRoll(2);
+      setTimeout(() => resolveMine(m.d[0] + m.d[1], m.prev, m.point, m.seven), ROLL_MS * FAST());
+    }
+    function resolveMine(sum, prev, np, seven) {
+      const res = []; let ret = 0, staked = 0, w = 0, l = 0;
+      const settle = (k, outcome, win) => {
+        const st = bets[k]; if (!st) return; staked += st; delete bets[k];
+        if (outcome === 'win') { ret += st + win; w++; res.push(BETS[k][0] + ' +' + money(win)); }
+        else if (outcome === 'push') { ret += st; res.push(BETS[k][0] + ' ничья'); }
+        else { l++; res.push(BETS[k][0] + ' −' + money(st)); }
+      };
+      if (bets.field) settle('field', [2, 3, 4, 9, 10, 11, 12].includes(sum) ? 'win' : 'lose', [2, 12].includes(sum) ? bets.field * 2 : bets.field);
+      if (bets.any7) settle('any7', sum === 7 ? 'win' : 'lose', bets.any7 * 4);
+      if (bets.crap) settle('crap', [2, 3, 12].includes(sum) ? 'win' : 'lose', bets.crap * 7);
+      if (!prev) {
+        if (bets.pass) { if (sum === 7 || sum === 11) settle('pass', 'win', bets.pass); else if ([2, 3, 12].includes(sum)) settle('pass', 'lose'); }
+        if (bets.dont) { if (sum === 2 || sum === 3) settle('dont', 'win', bets.dont); else if (sum === 12) settle('dont', 'push'); else if (sum === 7 || sum === 11) settle('dont', 'lose'); }
+      } else if (sum === prev) {
+        if (bets.odds) settle('odds', 'win', oddsPay(prev, bets.odds)); if (bets.pass) settle('pass', 'win', bets.pass); if (bets.dont) settle('dont', 'lose');
+      } else if (sum === 7) {
+        if (bets.odds) settle('odds', 'lose'); if (bets.pass) settle('pass', 'lose'); if (bets.dont) settle('dont', 'win', bets.dont);
+      }
+      point = np; wins += w; losses += l;
+      if (ret > 0) Bank.add(ret);
+      const delta = r2(ret - staked); net = r2(net + delta);
+      const label = (seven ? 'Семёрка — Seven-out! ' : sum === prev && prev ? 'Точка ' + sum + ' выбита! ' : '') + 'Выпало ' + sum + ' (' + dice[0] + '+' + dice[1] + ')';
+      const line = res.length ? res.join(', ') : (point ? 'точка ' + point : 'ставки остаются');
+      msg(label + '. ' + line + (res.length ? ' · итог ' + (delta >= 0 ? '+' : '−') + money(Math.abs(delta)) : ''), res.length ? (delta > 0 ? 'var(--up)' : delta < 0 ? 'var(--down)' : '') : '');
+      histPush(G('hist'), '<li><span class="n">#' + rolls + '</span><span class="t" style="font-weight:700">' + sum + ' <small style="opacity:.6">(' + dice[0] + '+' + dice[1] + ')</small></span><span class="b" style="color:' + (res.length ? (delta >= 0 ? 'var(--up)' : 'var(--down)') : 'var(--muted)') + '">' + (res.length ? (delta >= 0 ? '+' : '−') + money(Math.abs(delta)) : point ? 'точка ' + point : '—') + '</span></li>', 10000);
+      if (res.length) { delta > 0 ? Sfx.win(delta >= staked * 3) : delta < 0 ? Sfx.lose() : 0; }
+      if (seven) Sfx.diceSlam();
+      busy = false; render();
+    }
+
+    /* ---- сеть (хозяин считает броски, гости получают результат и считают свои ставки) ---- */
+    function lobbyRefresh() {
+      const box = G('lobby'), online = role !== 'solo', names = role === 'host' ? [myName()].concat(remotes.map(r => r.name)) : lobbyNames;
+      G('onl').style.display = online ? 'none' : 'block'; box.style.display = online ? 'block' : 'none'; G('exitroom').style.display = online ? 'block' : 'none';
+      const list = names.map(n => (n === shooterName ? '🎲 ' : '') + esc(n)).join(', ');
+      if (role === 'host') box.innerHTML = 'Код стола: <b class="code">' + hostCode + '</b><br>Игроки: ' + list + '<br><span style="color:var(--muted);font-size:12px">Передайте код другу: он вводит его в «Войти». Бросает по очереди каждый.</span>';
+      else if (role === 'guest') box.innerHTML = 'Вы в комнате.<br>Игроки: ' + list + '<br><span style="color:var(--muted);font-size:12px">Ставьте, а когда ваша очередь, бросайте кости.</span>';
+    }
+    function broadcastLobby() {
+      updateShooter(); const names = [myName()].concat(remotes.map(r => r.name)), humans = [null].concat(remotes), cur = humans[shooterIdx % humans.length];
+      remotes.forEach(r => send(r.conn, { t: 'lobby', names, shooter: shooterName, you: r === cur, point, rolls, bots: bots.map(b => ({ name: b.name, level: b.level, bank: b.bank, bet: b.bet, face: b.face })) }));
+      lobbyRefresh(); render();
+    }
+    function newCode() { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += a[randInt(a.length)]; return s; }
+    function createHost(tries) {
+      if (!PeerCls()) { msg('Не удалось загрузить сетевой модуль.', 'var(--down)'); return; }
+      hostCode = newCode(); msg('Создаём стол…');
+      const pr = new (PeerCls())('crap' + hostCode);
+      pr.on('open', () => { peer = pr; role = 'host'; remotes = []; shooterIdx = 0; msg('Стол создан. Отправьте код другу: ' + hostCode); broadcastLobby(); });
+      pr.on('error', e => { if (e.type === 'unavailable-id' && (tries || 0) < 4) { try { pr.destroy(); } catch (x) {} createHost((tries || 0) + 1); } else msg('Ошибка сети: ' + (e.type || e) + '. Проверьте интернет.', 'var(--down)'); });
+      pr.on('connection', conn => { const rec = { conn, name: 'Игрок' }; conn.on('data', m => onHostMsg(rec, m)); conn.on('close', () => dropRemote(rec)); conn.on('error', () => dropRemote(rec)); });
+    }
+    function dropRemote(rec) { const i = remotes.indexOf(rec); if (i < 0) return; remotes.splice(i, 1); broadcastLobby(); }
+    function onHostMsg(rec, m) {
+      if (!m || !m.t) return;
+      if (m.t === 'join') {
+        let nm = String(m.name || 'Игрок').slice(0, 14), base = nm, k = 2; const taken = () => nm === myName() || remotes.some(r => r !== rec && r.name === nm);
+        while (taken()) nm = base + k++;
+        rec.name = nm; if (!remotes.includes(rec)) { if (remotes.length >= 5) { send(rec.conn, { t: 'nope', msg: 'Стол заполнен.' }); return; } remotes.push(rec); }
+        broadcastLobby();
+      } else if (m.t === 'roll') hostRoll(rec);
+      else if (m.t === 'leave') dropRemote(rec);
+    }
+    function joinRoom() {
+      const code = G('code').value.trim().toUpperCase(); if (code.length < 4) { msg('Введите код стола.', 'var(--down)'); return; }
+      if (!PeerCls()) { msg('Не удалось загрузить сетевой модуль.', 'var(--down)'); return; }
+      msg('Подключаемся…'); const pr = new (PeerCls())();
+      pr.on('open', () => {
+        const c = pr.connect('crap' + code, { reliable: true }); let opened = false;
+        const to = setTimeout(() => { if (!opened) { msg('Не удалось подключиться. Проверьте код и интернет.', 'var(--down)'); try { pr.destroy(); } catch (e) {} } }, 12000);
+        c.on('open', () => { opened = true; clearTimeout(to); peer = pr; hostConn = c; role = 'guest'; lobbyNames = []; iShoot = false; shooterName = ''; msg('Подключено к столу.'); lobbyRefresh(); render(); send(c, { t: 'join', name: myName() }); });
+        c.on('data', onGuestMsg); c.on('close', () => toSolo('Хозяин закрыл соединение.')); c.on('error', () => toSolo('Ошибка соединения.'));
+      });
+      pr.on('error', e => msg(e.type === 'peer-unavailable' ? 'Стол с таким кодом не найден.' : 'Ошибка сети: ' + (e.type || e), 'var(--down)'));
+    }
+    function toSolo(text) {
+      try { if (peer) peer.destroy(); } catch (e) {} peer = null; hostConn = null; remotes = []; role = 'solo'; lobbyNames = []; botView = null; iShoot = true; shooterName = ''; shooterIdx = 0;
+      if (!busy) refundAll(); lobbyRefresh(); msg(text || 'Поставьте фишки и бросайте кости.'); render();
+    }
+    function onGuestMsg(m) {
+      if (!m || !m.t) return;
+      if (m.t === 'lobby') { lobbyNames = m.names; shooterName = m.shooter; iShoot = !!m.you; if (!busy) { point = m.point; rolls = m.rolls; } botView = m.bots; lobbyRefresh(); render(); }
+      else if (m.t === 'roll') applyRoll(m);
+      else if (m.t === 'nope') msg(m.msg || 'Отказано.', 'var(--down)');
+    }
+
+    G('bets').querySelectorAll('.cbet').forEach(b => b.addEventListener('click', () => place(b.dataset.k)));
+    G('roll').addEventListener('click', () => { if (role === 'guest') { if (iShoot) send(hostConn, { t: 'roll' }); } else hostRoll(null); });
+    G('clear').addEventListener('click', clearBets);
+    G('host').addEventListener('click', () => createHost(0)); G('join').addEventListener('click', joinRoom);
+    G('exitroom').addEventListener('click', () => {
+      if (role === 'guest') { send(hostConn, { t: 'leave' }); toSolo('Вы вышли из комнаты.'); }
+      else if (role === 'host') { remotes.forEach(r => send(r.conn, { t: 'end' })); toSolo('Стол закрыт.'); }
+    });
+    Bank.onReset.push(() => { bets = {}; point = 0; busy = false; hostBusy = false; rolls = wins = losses = 0; net = 0; bots.forEach(b => { b.bank = 100; b.bet = null; b.face = { m: 'neutral', amp: 1 }; }); G('hist').innerHTML = '<li class="empty" style="display:block;background:none;border:0;animation:none">Пока пусто</li>'; msg('Поставьте фишки и бросайте кости.'); render(); });
+    window.addEventListener('beforeunload', () => { try { if (peer) peer.destroy(); } catch (e) {} });
+    window.__cx = { state: () => ({ point, bets, rolls, wins, losses, net, bots, role, shooterName, iShoot }), place, hostRoll: () => hostRoll(null), applyRoll, onHostMsg, addRemote: name => { const sent = []; const rec = { conn: { send: m => sent.push(m) }, name, sent }; remotes.push(rec); role = 'host'; hostCode = 'TEST1'; broadcastLobby(); return rec; }, setPoint: p => { point = p; render(); } };
+    updateShooter(); render();
+  }
 })();
 
 /* ============ запуск ============ */
