@@ -1727,9 +1727,15 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   function buildBuy() {
     let buy = Math.floor(Number(G('buy').value) * 100) / 100; const bal = Math.floor(Bank.bal * 100) / 100;
     if (!isFinite(buy) || buy < 1) buy = Math.min(1, bal); if (buy > bal) buy = bal;
-    const bb = Number(G('bb').value);
+    let bb = Number(G('bb').value);
     if (buy < 1) { status('Нужно минимум $1 на балансе.', 'var(--down)'); return null; }
-    if (buy < bb * 5) { status('Бай-ин должен быть минимум 5 больших блайндов.', 'var(--down)'); return null; }
+    if (buy < bb * 5) {
+      // подбираем самый крупный блайнд, который укладывается в бай-ин (минимум 5 больших блайндов)
+      const all = [...G('bb').options].map(o => Number(o.value)), ok = all.filter(v => buy >= v * 5);
+      if (!ok.length) { status('Не хватает денег: на балансе $' + bal.toFixed(2) + ', а для самого маленького блайнда нужно минимум $' + (Math.min(...all) * 5).toFixed(2) + '.', 'var(--down)'); return null; }
+      bb = Math.max(...ok); G('bb').value = String(bb);
+      status('Бай-ин $' + buy.toFixed(2) + ' ограничен балансом, блайнд снижен до $' + bb.toFixed(2) + '.', 'var(--gold)');
+    }
     return { buy, bb };
   }
   function startGame() {
