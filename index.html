@@ -477,14 +477,14 @@ const Sfx = (() => {
   }  // твёрдый удар шарика: затухающие неточные гармоники (пластик/слоновая кость) + короткий шум + глухой стук дерева
   function hit(t, a, p) {
     const c = get(); if (!c) return; const t0 = c.currentTime + t;
-    [[2400, .03, 1], [3700, .02, .6], [5600, .013, .35], [1350, .045, .55]].forEach(([f, d, m]) => {
+    [[3150, .16, 1], [4870, .13, .75], [6930, .1, .55], [8450, .07, .35], [1930, .11, .6], [2580, .09, .45]].forEach(([f, d, m]) => {
       const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f * p * (1 + (Math.random() - .5) * .05);
-      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.15 * a * m, t0 + .0012); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.12 * a * m, t0 + .0008); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
       o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + d + .02);
     });
-    burst(t, .012, 5200 * p, 1, .2 * a, 'bandpass');
+    burst(t, .008, 7000 * p, 1.4, .22 * a, 'bandpass');
     const w = c.createOscillator(), wg = c.createGain(); w.type = 'sine'; w.frequency.setValueAtTime(240 * p, t0); w.frequency.exponentialRampToValueAtTime(150 * p, t0 + .05);
-    wg.gain.setValueAtTime(.0001, t0); wg.gain.exponentialRampToValueAtTime(.13 * a, t0 + .003); wg.gain.exponentialRampToValueAtTime(.0001, t0 + .06);
+    wg.gain.setValueAtTime(.0001, t0); wg.gain.exponentialRampToValueAtTime(.05 * a, t0 + .003); wg.gain.exponentialRampToValueAtTime(.0001, t0 + .06);
     w.connect(wg); wg.connect(out); w.start(t0); w.stop(t0 + .08);
   }
   function rlClick(sp) { sp = Math.max(0, Math.min(1, sp)); hit(0, .45 + .55 * sp, .9 + Math.random() * .2); }
