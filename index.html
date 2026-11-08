@@ -500,14 +500,14 @@ const Sfx = (() => {
     burst(0, .08, 4200, 1.5, .1); voice(N(19), 0, .35, .1, 'bell');
     eng = { acc: 0, last: performance.now(), mi: 0 };
   }
-  function crashUpdate(m, cashed) {
+  function crashUpdate(m, cashed, tm) {
     if (!eng) return; if (!on || !ctx) { eng = null; return; }
     const now = performance.now(), dt = Math.min(.1, (now - eng.last) / 1000); eng.last = now;
-    const l = Math.log2(Math.max(1, m)), rate = Math.min(26, 4 + 5 * l) * (cashed ? .5 : 1);
+    const l = Math.log2(Math.max(1, tm || m)), rate = Math.min(26, 4 + 5 * l) * (cashed ? .5 : 1);
     eng.acc += rate * dt;
     let n = 0; while (eng.acc >= 1 && n++ < 3) {
       eng.acc -= 1;
-      const f = Math.min(2600, 520 * Math.pow(Math.max(1, m), .28)), v = (cashed ? .035 : .07) * (1 + Math.min(.6, l * .06));
+      const f = Math.min(2600, 520 * Math.pow(Math.max(1, tm || m), .28)), v = (cashed ? .035 : .07) * (1 + Math.min(.6, l * .06));
       voice(f, 0, .1, v, 'bell'); burst(0, .012, 6500, 1.6, v * .7);
     }
     while (eng.mi < MILE.length && m >= MILE[eng.mi]) { const i = eng.mi++; voice(N(12 + i * 2), 0, .45, .1, 'bell'); voice(N(24 + i * 2), .06, .35, .05, 'bell'); }
@@ -871,7 +871,8 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
 (function () {
   const root = $('#pg-crash'), HMAX = 10000, uid = 'cr';
   root.innerHTML = `
-  <h2 class="ptitle">Краш</h2>
+  <div class="modesw" id="cr-modes"><button class="modebtn on" data-m="n">Обычный краш</button><button class="modebtn" data-m="x">Экстрим-краш · старт 2⁻³</button></div>
+  <h2 class="ptitle" id="cr-title">Краш</h2>
   <div class="grid3">
     <aside class="panel">
       <div class="label">Раундов</div><div class="bigcount" id="cr-rounds">0</div>
@@ -899,7 +900,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
           <input type="number" id="cr-n" min="1" max="100000" value="100" style="flex:1;min-width:110px" aria-label="Число раундов">
           <button class="sec" id="cr-sim">Симулировать раунды (нужен авто-вывод)</button>
         </div>
-        <div class="hint">Шанс краша ≥ m равен (1−комиссия)/m. Краш 1.00 — проигрыш всем. Пробел — играть/забрать.</div>
+        <div class="hint" id="cr-hint">Шанс краша ≥ m равен (1−комиссия)/m. Краш 1.00 — проигрыш всем. Пробел — играть/забрать.</div>
       </div>
     </section>
     <aside class="panel"><div class="label" style="margin-bottom:10px">История раундов</div><ul class="hist" id="cr-hist">${EMPTY_LI}</ul></aside>
@@ -910,13 +911,26 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   document.head.appendChild(st);
 
   const G = s => $('#cr-' + s, root), cv = G('cv'), ctx = cv.getContext('2d');
-  const mx = v => v.toFixed(2) + 'x', cls = c => c < 2 ? 'lo' : c < 10 ? 'mid' : 'hi';
+  const mx = v => (v < 1 ? v.toFixed(3) : v.toFixed(2)) + 'x', cls = c => c < 2 ? 'lo' : c < 10 ? 'mid' : 'hi';
   let rounds = 0, wins = 0, losses = 0, staked = 0, returned = 0, best = 0, base = null;
   let state = 'idle', crashAt, betNow, autoAt, t0, curM = 1, raf, cashed = null, lastX = [];
 
-  const crashPoint = edge => { const c = (1 - edge) / randUnit(); if (c < 1.01) return 1.00; return Math.min(1e6, Math.floor(c * 100) / 100); };
-  const mAt = s => Math.exp(0.1 * s + 0.004 * s * s);
-  const tAt = m => (-0.1 + Math.sqrt(0.01 + 0.016 * Math.log(m))) / 0.008;
+  // режимы: 'n' — обычный, 'x' — экстрим: старт 2^-3 = 0.125x, множитель удваивается каждые XT секунд
+  let mode = 'n'; const XT = 1.25, X0 = .125;
+  const startM = () => mode === 'x' ? X0 : 1;
+  const mfloor = v => mode === 'x' ? Math.floor(v * 1000) / 1000 : Math.floor(v * 100) / 100;
+  const crashPoint = edge => {
+    if (mode === 'x') {
+      // честная математика: выше 1.00x шанс дожить до m равен (1−комиссия)/m, как в обычном краше;
+      // «комиссия» — это шанс разбиться ещё в зоне ниже 1.00x (точка краша равномерна по логарифму между 0.125x и 1x)
+      const c = (1 - edge) / randUnit();
+      if (c < 1) return Math.max(X0, Math.floor(X0 * Math.pow(1 / X0, randUnit()) * 1000) / 1000);
+      return Math.min(1e6, Math.floor(c * 1000) / 1000);
+    }
+    const c = (1 - edge) / randUnit(); if (c < 1.01) return 1.00; return Math.min(1e6, Math.floor(c * 100) / 100);
+  };
+  const mAt = s => mode === 'x' ? X0 * Math.pow(2, s / XT) : Math.exp(0.1 * s + 0.004 * s * s);
+  const tAt = m => mode === 'x' ? XT * Math.log2(Math.max(m, X0) / X0) : (-0.1 + Math.sqrt(0.01 + 0.016 * Math.log(m))) / 0.008;
   const money = v => fmt(v, 2);
   const dollars = v => Math.floor(v * 100) / 100;
 
@@ -930,10 +944,34 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   const msg = (t, c) => { G('msg').textContent = t; G('msg').style.color = c || 'var(--text)'; };
   const mult = (text, sub, cl) => { const m = $('#cr-mult', root); m.className = cl || ''; m.firstChild.nodeValue = text; G('sub').textContent = sub || ''; };
   const readBet = () => { let b = dollars(Number(G('bet').value)); if (!isFinite(b) || b < 0.01) b = 0.01; if (b > Bank.bal) b = dollars(Bank.bal); return b; };
-  const readAuto = () => { const r = G('auto').value.trim(); if (r === '') return null; const a = Number(r); return isFinite(a) ? Math.max(1.01, dollars(a)) : null; };
+  const readAuto = () => { const r = G('auto').value.trim(); if (r === '') return null; const a = Number(r); return isFinite(a) ? Math.max(mode === 'x' ? 0.13 : 1.01, mfloor(a)) : null; };
 
   function size() { const r = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return; cv.width = w * r; cv.height = h * r; ctx.setTransform(r, 0, 0, r, 0, 0); }
+  // экстрим: обычная (линейная) шкала, чтобы кривая выглядела как настоящая 2^x; линия безубыточности 1.00x
+  function drawX(m, crashed) {
+    const w = cv.clientWidth, h = cv.clientHeight, pad = 28; if (!w) return;
+    ctx.clearRect(0, 0, w, h);
+    const mm = Math.max(m, X0), s = tAt(mm), tmax = Math.max(6, s * 1.08), vmax = Math.max(2, mm * 1.15);
+    const X = t => pad + t / tmax * (w - pad - 14), Y = v => h - pad - Math.max(0, v) / vmax * (h - pad * 2);
+    ctx.font = '11px system-ui'; ctx.lineWidth = 1;
+    const stp = [.25, .5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000, 100000, 1000000].find(q => q >= vmax / 5) || 1000000, vs = new Set([1]);
+    for (let v = stp; v <= vmax; v += stp) vs.add(+v.toFixed(3));
+    for (const v of vs) {
+      const y = Y(v), one = v === 1;
+      ctx.strokeStyle = one ? 'rgba(255,255,255,.28)' : 'rgba(255,255,255,.06)'; ctx.fillStyle = one ? 'rgba(255,255,255,.7)' : 'rgba(255,255,255,.35)';
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - 10, y); ctx.stroke();
+      ctx.fillText((v < 1 ? String(v) : v >= 1000 ? Math.round(v) : v) + 'x', 4, y - 3);
+    }
+    if (m <= X0 && !crashed) { ctx.beginPath(); ctx.arc(X(0), Y(X0), 7, 0, 7); ctx.fillStyle = '#3ddc84'; ctx.fill(); return; }
+    const col = crashed ? '#ff5d5d' : (m >= 1 ? '#3ddc84' : '#f5c542');
+    ctx.beginPath(); ctx.moveTo(X(0), Y(X0));
+    for (let i = 1; i <= 120; i++) { const t = s * i / 120; ctx.lineTo(X(t), Y(mAt(t))); }
+    ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = col; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(s), Y(mm), 7, 0, 7); ctx.fillStyle = col; ctx.fill();
+    if (autoAt && state === 'run' && autoAt <= vmax) { ctx.setLineDash([6, 6]); ctx.strokeStyle = 'rgba(61,220,132,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, Y(autoAt)); ctx.lineTo(w - 10, Y(autoAt)); ctx.stroke(); ctx.setLineDash([]); }
+  }
   function draw(m, crashed) {
+    if (mode === 'x') { drawX(m, crashed); return; }
     const w = cv.clientWidth, h = cv.clientHeight, pad = 28; if (!w) return;
     ctx.clearRect(0, 0, w, h);
     const s = m > 1 ? tAt(m) : 0, tmax = Math.max(6, s * 1.08), mmax = Math.max(2, m * 1.2);
@@ -954,7 +992,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
 
   function buttons() {
     const go = G('go');
-    if (state === 'run') { go.classList.add('cash'); go.textContent = cashed ? 'Выведено' : 'Забрать ' + money(betNow * dollars(curM)); go.disabled = !!cashed; }
+    if (state === 'run') { go.classList.add('cash'); go.textContent = cashed ? 'Выведено' : 'Забрать ' + money(betNow * mfloor(curM)); go.disabled = !!cashed; }
     else { go.classList.remove('cash'); go.textContent = 'Играть'; go.disabled = Bank.bal < 0.01; }
     G('sim').disabled = state === 'run' || Bank.bal < 0.01;
   }
@@ -966,18 +1004,18 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     betNow = readBet(); if (betNow < 0.01) return;
     if (base === null) base = Bank.bal;
     autoAt = readAuto(); G('bet').value = betNow.toFixed(2);
-    staked += betNow; cashed = null; curM = 1;
+    staked += betNow; cashed = null; curM = startM();
     crashAt = crashPoint(Number(G('edge').value));
     state = 'run'; Bank.add(-betNow); t0 = performance.now(); Sfx.crashStart();
     msg(''); stats(); buttons();
-    mult('1.00x', autoAt ? 'авто-вывод на ' + mx(autoAt) : 'нажмите «Забрать»', 'run');
+    mult(mx(startM()), autoAt ? 'авто-вывод на ' + mx(autoAt) : 'нажмите «Забрать»', 'run');
     cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
   }
   function tick(now) {
     if (state !== 'run') return;
     const m = mAt(Math.max(0, (now - t0) / 1000));
     if (m >= crashAt) { crash(); return; }
-    curM = m; const shown = dollars(m); Sfx.crashUpdate(m, !!cashed);
+    curM = m; const shown = mfloor(m); Sfx.crashUpdate(m, !!cashed, mode === 'x' ? m * 8 : m);
     if (!cashed && autoAt && shown >= autoAt) doCash(autoAt);
     mult(mx(shown), cashed ? 'выведено на ' + mx(cashed) : '', cashed ? 'won' : 'run');
     if (!cashed) buttons();
@@ -986,23 +1024,23 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   function doCash(at) {
     if (cashed || state !== 'run') return;
     cashed = at; const payout = Math.round(betNow * at * 100) / 100;
-    returned += payout; wins++; Bank.add(payout); Sfx.win();
-    msg('Выведено на ' + mx(at) + ': +' + money(payout - betNow), 'var(--up)'); stats(); buttons();
+    returned += payout; at > 1 ? wins++ : losses++; Bank.add(payout); at > 1 ? Sfx.win() : Sfx.lose();
+    const dl = payout - betNow; msg('Выведено на ' + mx(at) + ': ' + (dl >= 0 ? '+' : '') + money(dl), dl >= 0 ? 'var(--up)' : 'var(--down)'); stats(); buttons();
   }
-  const rowHtml = (n, c, bet, out) => '<li><span class="n">#' + n + '</span><span class="x ' + cls(c) + '">' + mx(c) + '</span><span class="bet">ставка ' + money(bet) + '</span><span class="res ' + (out > 0 ? 'u' : 'd') + '">' + (out > 0 ? '+' + money(out - bet) : money(-bet)) + '</span></li>';
+  const rowHtml = (n, c, bet, out) => '<li><span class="n">#' + n + '</span><span class="x ' + cls(c) + '">' + mx(c) + '</span><span class="bet">ставка ' + money(bet) + '</span><span class="res ' + (out > bet ? 'u' : 'd') + '">' + (out > 0 ? (out >= bet ? '+' : '') + money(out - bet) : money(-bet)) + '</span></li>';
   function crash() {
     cancelAnimationFrame(raf); Sfx.crashStop(); Sfx.crashBoom();
     const c = crashAt; rounds++; best = Math.max(best, c);
     const payout = cashed ? Math.round(betNow * cashed * 100) / 100 : 0;
     if (!cashed) { Sfx.lose(); losses++; msg('Краш на ' + mx(c) + '. Потеряно ' + money(betNow), 'var(--down)'); }
-    mult(mx(c), 'краш', 'crash'); draw(c > 1 ? c : 1.0001, true);
+    mult(mx(c), 'краш', 'crash'); draw(mode === 'x' ? c : (c > 1 ? c : 1.0001), true);
     lastX.unshift(c); lastX = lastX.slice(0, 14); stripRender();
     histPush(G('hist'), rowHtml(rounds, c, betNow, payout), HMAX);
     const was = state; state = 'idle'; Bank.render(cashed ? 1 : -1); stats(); buttons();
   }
   function manualCash() {
     if (state !== 'run' || cashed) return;
-    const shown = dollars(curM); if (shown < 1.01) return;
+    const shown = mfloor(curM); if (shown < (mode === 'x' ? X0 : 1.01)) return;
     doCash(shown); mult(mx(shown), 'выведено, ждём краш…', 'won');
   }
   function simulate() {
@@ -1039,10 +1077,23 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     G('bet').value = Math.max(0.01, Math.min(dollars(Bank.bal), dollars(v))).toFixed(2);
   }));
   window.addEventListener('keydown', e => { if (e.code === 'Space' && root.classList.contains('on') && !['INPUT', 'SELECT', 'BUTTON'].includes(e.target.tagName)) { e.preventDefault(); state === 'run' ? manualCash() : start(); } });
-  window.addEventListener('resize', () => { size(); draw(state === 'run' ? curM : 1, false); });
-  window.addEventListener('pagechange', e => { if (e.detail !== 'crash') Sfx.crashStop(); if (e.detail === 'crash') { size(); draw(state === 'run' ? curM : 1, false); } });
-  Bank.onReset.push(() => { cancelAnimationFrame(raf); state = 'idle'; rounds = wins = losses = 0; staked = returned = 0; best = 0; base = null; lastX = []; cashed = null; curM = 1; stripRender(); G('hist').innerHTML = EMPTY_LI; msg(''); mult('1.00x', 'сделайте ставку', ''); draw(1, false); stats(); buttons(); });
-  mult('1.00x', 'сделайте ставку', ''); stats(); buttons();
+  window.addEventListener('resize', () => { size(); draw(state === 'run' ? curM : startM(), false); });
+  window.addEventListener('pagechange', e => { if (e.detail !== 'crash') Sfx.crashStop(); if (e.detail === 'crash') { size(); draw(state === 'run' ? curM : startM(), false); } });
+  Bank.onReset.push(() => { cancelAnimationFrame(raf); state = 'idle'; rounds = wins = losses = 0; staked = returned = 0; best = 0; base = null; lastX = []; cashed = null; curM = 1; stripRender(); G('hist').innerHTML = EMPTY_LI; msg(''); mult(mx(startM()), 'сделайте ставку', ''); draw(startM(), false); stats(); buttons(); });
+  function setMode(m) {
+    if (state === 'run' || m === mode) return; mode = m;
+    root.querySelectorAll('#cr-modes .modebtn').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    $('#cr-title', root).textContent = m === 'x' ? 'Экстрим-краш: старт 2⁻³ = 0.125x, удваивается каждые 1.25 с' : 'Краш';
+    $('#cr-hint', root).textContent = m === 'x' ? 'Экстрим: множитель стартует с 2⁻³ = 0.125x и удваивается каждые 1.25 с. Ниже 1.00x вывод возвращает лишь часть ставки. Комиссия казино = шанс разбиться ещё до 1.00x. Выше 1.00x шанс дожить до m равен (1−комиссия)/m. Пробел — играть/забрать.' : 'Шанс краша ≥ m равен (1−комиссия)/m. Краш 1.00 — проигрыш всем. Пробел — играть/забрать.';
+    G('edge').innerHTML = m === 'x'
+      ? '<option value="0.01">1% (RTP 99%)</option><option value="0.1" selected>10% (RTP 90%)</option><option value="0.25">25% (RTP 75%)</option><option value="0.4">40% (RTP 60%)</option>'
+      : '<option value="0">0% (честно, RTP 100%)</option><option value="0.01" selected>1% (RTP 99%)</option><option value="0.03">3% (RTP 97%)</option><option value="0.05">5% (RTP 95%)</option>';
+    G('auto').min = m === 'x' ? '0.13' : '1.01';
+    rounds = wins = losses = 0; staked = returned = 0; best = 0; base = null; lastX = []; cashed = null; curM = startM(); stripRender(); G('hist').innerHTML = EMPTY_LI; msg('');
+    mult(mx(startM()), 'сделайте ставку', ''); size(); draw(startM(), false); stats(); buttons();
+  }
+  root.querySelectorAll('#cr-modes .modebtn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.m)));
+  mult(mx(startM()), 'сделайте ставку', ''); stats(); buttons();
 })();
 /* ============ РУЛЕТКА (европейская, один ноль) ============ */
 (function () {
