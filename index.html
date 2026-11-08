@@ -413,29 +413,25 @@ const Sfx = (() => {
   const N = s => 261.63 * Math.pow(2, s / 12), MAJ = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16], MIN = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15];
   // ---- краш: «двигатель» с тоном по множителю, вехи, взрыв ----
   let eng = null; const MILE = [1.5, 2, 3, 5, 10, 25, 100, 1000];
-  function crashStop() {
-    if (!eng) return; const c = ctx, e = eng; eng = null;
-    try { const t = c.currentTime; e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(.0001, t, .03); e.o1.stop(t + .2); e.o2.stop(t + .2); } catch (x) {}
-  }
+  function crashStop() { eng = null; }
+  // «счётчик»: металлические тики, которые учащаются и поднимаются по тону вместе с множителем
   function crashStart() {
-    crashStop(); const c = get(); if (!c) return; const t = c.currentTime;
-    burst(0, .4, 500, .8, .13, 'lowpass'); burst(0, .12, 3200, 1.2, .07); voice(N(-17), 0, .3, .13, 'soft');
-    const o1 = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
-    o1.type = 'sawtooth'; o2.type = 'triangle'; o1.frequency.value = 85; o2.frequency.value = 170;
-    f.type = 'lowpass'; f.frequency.value = 450; f.Q.value = 3;
-    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .3);
-    o1.connect(f); o2.connect(f); f.connect(g); g.connect(out); o1.start(); o2.start();
-    eng = { o1, o2, f, g, mi: 0 };
+    const c = get(); if (!c) { eng = null; return; }
+    burst(0, .08, 4200, 1.5, .1); voice(N(19), 0, .35, .1, 'bell');
+    eng = { acc: 0, last: performance.now(), mi: 0 };
   }
   function crashUpdate(m, cashed) {
-    if (!eng) return; if (!on || !ctx) { crashStop(); return; }
-    const t = ctx.currentTime, l = Math.log2(Math.max(1, m)), fr = Math.min(1500, 85 * Math.pow(Math.max(1, m), .4));
-    eng.o1.frequency.setTargetAtTime(fr, t, .06); eng.o2.frequency.setTargetAtTime(fr * 2.003, t, .06);
-    eng.f.frequency.setTargetAtTime(Math.min(5200, 450 + 260 * l), t, .08);
-    eng.g.gain.setTargetAtTime(cashed ? .03 : Math.min(.1, .05 + .005 * l), t, .1);
+    if (!eng) return; if (!on || !ctx) { eng = null; return; }
+    const now = performance.now(), dt = Math.min(.1, (now - eng.last) / 1000); eng.last = now;
+    const l = Math.log2(Math.max(1, m)), rate = Math.min(26, 4 + 5 * l) * (cashed ? .5 : 1);
+    eng.acc += rate * dt;
+    let n = 0; while (eng.acc >= 1 && n++ < 3) {
+      eng.acc -= 1;
+      const f = Math.min(2600, 520 * Math.pow(Math.max(1, m), .28)), v = (cashed ? .035 : .07) * (1 + Math.min(.6, l * .06));
+      voice(f, 0, .1, v, 'bell'); burst(0, .012, 6500, 1.6, v * .7);
+    }
     while (eng.mi < MILE.length && m >= MILE[eng.mi]) { const i = eng.mi++; voice(N(12 + i * 2), 0, .45, .1, 'bell'); voice(N(24 + i * 2), .06, .35, .05, 'bell'); }
-  }
-  function crashBoom() {
+  }  function crashBoom() {
     const c = get(); if (!c) return; const t = c.currentTime;
     burst(0, 1.1, 260, .6, .55, 'lowpass'); burst(0, .3, 2800, .7, .22); burst(.04, .5, 900, .7, .18);
     const o = c.createOscillator(), g = c.createGain(); o.type = 'sine';
