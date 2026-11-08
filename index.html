@@ -477,7 +477,7 @@ const Sfx = (() => {
   }  // твёрдый удар шарика: затухающие неточные гармоники (пластик/слоновая кость) + короткий шум + глухой стук дерева
   function hit(t, a, p) {
     const c = get(); if (!c) return; const t0 = c.currentTime + t;
-    [[3150, .16, 1], [4870, .13, .75], [6930, .1, .55], [8450, .07, .35], [1930, .11, .6], [2580, .09, .45]].forEach(([f, d, m]) => {
+    [[3150, .32, 1], [4870, .27, .85], [6930, .2, .65], [8450, .15, .5], [10400, .1, .3], [1930, .24, .6], [2580, .19, .5]].forEach(([f, d0, m]) => { const d = d0 * (.6 + .9 * a);
       const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f * p * (1 + (Math.random() - .5) * .05);
       g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.12 * a * m, t0 + .0008); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
       o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + d + .02);
