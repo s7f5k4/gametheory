@@ -443,11 +443,47 @@ const Sfx = (() => {
     g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .85);
     o.connect(g); g.connect(out); o.start(t); o.stop(t + .9);
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
+  // ---- монета: тик на каждом ребре (по реальному вращению), щелчок броска, приземление ----
+  function coinFlick() { const c = get(); if (!c) return; voice(N(24), 0, .5, .13, 'bell'); burst(0, .05, 5000, 1.5, .1); }
+  function coinTick(iv) {
+    const c = get(); if (!c) return; iv = Math.max(.04, iv);
+    const f = 1400 * Math.pow(.05 / Math.max(.05, Math.min(.5, iv)), .35), v = Math.min(.2, .05 + .006 / iv);
+    burst(0, .07, f * 1.8, 2, v, 'bandpass'); voice(f, 0, .12, v * .5, 'soft');
+  }
+  function coinLand() {
+    if (!get()) return;
+    [0, .085, .15, .195, .22].forEach((t, i) => { const a = Math.pow(.6, i); voice(1800 - i * 110, t, .2, .17 * a, 'bell'); burst(t, .03, 3500, 2, .1 * a); });
+  }
+  // ---- рулетка: шарик катится по ободу, падает на колесо и прыгает по ячейкам ----
+  let rl = null;
+  function rlStop() {
+    if (!rl) return; const c = ctx, r = rl; rl = null;
+    try { const t = c.currentTime; r.g.gain.cancelScheduledValues(t); r.g.gain.setTargetAtTime(.0001, t, .03); r.s.stop(t + .2); r.l.stop(t + .2); } catch (x) {}
+  }
+  // шарик по ободу: узкополосный «дробный» стук (шум, модулированный по скорости шарика), без низкого гула
+  function rlStart() {
+    rlStop(); const c = get(); if (!c) return;
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), am = c.createGain(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+    s.buffer = noiseBuf; s.loop = true; f.type = 'bandpass'; f.frequency.value = 2200; f.Q.value = 3.5;
+    am.gain.value = .5; l.type = 'triangle'; l.frequency.value = 30; lg.gain.value = .5; g.gain.value = .0001;
+    l.connect(lg); lg.connect(am.gain); s.connect(f); f.connect(am); am.connect(g); g.connect(out); s.start(); l.start(); rl = { s, f, l, g };
+  }
+  function rlUpdate(w, rolling) {
+    if (!rl) return; if (!on || !ctx) { rlStop(); return; }
+    const t = ctx.currentTime;
+    rl.l.frequency.setTargetAtTime(7 + w * 1.1, t, .05);
+    rl.f.frequency.setTargetAtTime(1500 + Math.min(1800, w * 55), t, .05);
+    rl.g.gain.setTargetAtTime(rolling ? Math.min(.11, .03 + w * .004) : .0001, t, .04);
+  }  function rlClick(sp) {
+    if (!get()) return; sp = Math.max(0, Math.min(1, sp));
+    burst(0, .025, 2800 + Math.random() * 1200, 5, .07 + .16 * sp, 'bandpass'); voice(1900 + Math.random() * 600, 0, .07, .04 + .05 * sp, 'soft');
+  }
+  function rlDrop() { if (!get()) return; burst(0, .12, 1200, 1.2, .22, 'bandpass'); burst(.03, .05, 3200, 3, .18); voice(N(-5), 0, .2, .1, 'soft'); }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
   return {
     get on() { return on; }, get state() { return ctx ? ctx.state : 'none'; },
     unlock() { const c = get(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {} if (c.state === 'suspended') c.resume(); },
     crashStart, crashUpdate, crashStop, crashBoom,
+    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop,
     setOn(v) { on = v; try { localStorage.setItem('casino_sfx', v ? '1' : '0'); } catch (e) {} },
     win(big) { [0, 4, 7, 12].forEach((s, i) => voice(N(s + 12), i * .1, .9, .2, 'bell')); if (big) [0, 4, 7].forEach(s => voice(N(s + 24), .45, 1.2, .12, 'bell')); },
     lose() { [-5, -8, -12].forEach((s, i) => voice(N(s), i * .22, .8, .26, 'dark')); },
@@ -604,6 +640,15 @@ function createCoin(root, cfg) {
   function begin() { if (startBal === null) { startBal = Bank.bal; hi = lo = Bank.bal; } }
   const row = (n, up, b) => '<li><span class="n">#' + n + '</span><span class="t ' + (up ? 'u' : 'd') + '">' + (up ? cfg.upText : cfg.downText) + '</span><span class="b">' + fmt(b, 4) + '</span></li>';
 
+  function trackCoin(ms) {
+    const t0 = performance.now(); let prev = null, lastT = t0;
+    (function f(now) {
+      const cs = new DOMMatrix(getComputedStyle(coin).transform).m11 >= 0 ? 1 : -1;
+      if (prev !== null && cs !== prev) { Sfx.coinTick((now - lastT) / 1000); lastT = now; }
+      prev = cs;
+      if (now - t0 < ms) requestAnimationFrame(f); else Sfx.coinLand();
+    })(t0);
+  }
   function flip() {
     if (busy || Bank.bal <= 0) return;
     begin(); setBusy(true); $$('msg').textContent = '';
@@ -611,7 +656,7 @@ function createCoin(root, cfg) {
     const bit = rollHeads(c) === 1;
     rot += (5 + randInt(3)) * 360 + (bit ? 0 : 180) - (rot % 360);
     coin.style.transition = 'transform 1.6s cubic-bezier(.2,.7,.2,1)'; coin.style.transform = 'rotateY(' + rot + 'deg)';
-    scene.classList.add('flying'); Sfx.coinSpin(1.45);
+    scene.classList.add('flying'); Sfx.coinFlick(); trackCoin(1600);
     setTimeout(() => {
       scene.classList.remove('flying');
       const before = Bank.bal, after = step(before, bit, pct);
@@ -642,7 +687,7 @@ function createCoin(root, cfg) {
     rot += 24 * 360 + (lastH ? 0 : 180) - (rot % 360);
     coin.style.transition = 'transform 5s cubic-bezier(.25,.6,.2,1)'; coin.style.transform = 'rotateY(' + rot + 'deg)';
     scene.classList.add('flying');
-    Sfx.coinSpin(4.7);
+    Sfx.coinFlick(); trackCoin(5000);
     const T = 5000, t0 = performance.now();
     (function tick(now) {
       const k = Math.max(0, Math.min(1, (now - t0) / T)), e = 1 - Math.pow(1 - k, 2);
@@ -961,14 +1006,23 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     const result = randInt(37), idx = ORDER.indexOf(result);
     const w0 = wheelRot, need = (((-idx * STEP - w0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), total_ = need + 4 * 2 * Math.PI;
     const T = 5200, t0 = performance.now(), balls = 7 * 2 * Math.PI;
-    G('num').textContent = '…'; G('num').className = ''; Sfx.rouletteSpin(5.1);
+    G('num').textContent = '…'; G('num').className = ''; Sfx.rlStart(); let prevP = null, dropped = false, prevRev = null;
     (function tick(now) {
       const k = Math.max(0, Math.min(1, (now - t0) / T)), e = 1 - Math.pow(1 - k, 3);
       const W = w0 + total_ * e, B = -Math.PI / 2 - balls * (1 - e);
       const Br = k < .7 ? R - 14 : (R - 14) + ((R * .74 - 14) - (R - 14)) * ((k - .7) / .3);
       drawWheel(W, B, Br);
+      const om = balls * 3 * Math.pow(1 - k, 2) / (T / 1000);
+      Sfx.rlUpdate(om, k < .7);
+      if (k < .7) { const rv = Math.floor(B / (2 * Math.PI)); if (prevRev !== null && rv !== prevRev) Sfx.rlClick(.35); prevRev = rv; }
+      if (k >= .7) {
+        if (!dropped) { dropped = true; Sfx.rlDrop(); }
+        const pk = Math.floor((B + Math.PI / 2 - W) / STEP + .5);
+        if (prevP !== null && pk !== prevP) Sfx.rlClick(om / 2.3);
+        prevP = pk;
+      }
       if (k < 1) { requestAnimationFrame(tick); return; }
-      wheelRot = (w0 + total_) % (2 * Math.PI); finish(result);
+      Sfx.rlStop(); Sfx.rlClick(.6); wheelRot = (w0 + total_) % (2 * Math.PI); finish(result);
     })(t0);
   }
   function finish(n) {
@@ -977,7 +1031,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     pay = Math.round(pay * 100) / 100; ret += pay; staked += stake; spins++; pay > stake ? wins++ : losses++;
     G('num').textContent = n; G('num').className = 'rl-' + { r: 'red', b: 'black', g: 'green' }[colorOf(n)];
     cells['n' + n].classList.add('win');
-    const net = pay - stake; net > 0 ? Sfx.win(net >= stake * 5) : net < 0 ? Sfx.lose() : 0;
+    const net = pay - stake; setTimeout(() => { net > 0 ? Sfx.win(net >= stake * 5) : net < 0 ? Sfx.lose() : 0; }, 350);
     G('msg').textContent = 'Выпало ' + n + '. ' + (net > 0 ? 'Выигрыш +' + money(net) : net === 0 ? 'В ноль' : 'Проигрыш ' + money(net)); G('msg').style.color = net > 0 ? 'var(--up)' : net < 0 ? 'var(--down)' : 'var(--text)';
     histPush(G('hist'), '<li><span class="n">#' + spins + '</span><span class="t" style="color:' + (n === 0 ? 'var(--up)' : REDS.has(n) ? '#ff6b73' : '#c9d1de') + '">' + n + '</span><span class="b" style="color:' + (net >= 0 ? 'var(--up)' : 'var(--down)') + '">' + (net >= 0 ? '+' : '') + money(net) + '</span></li>', 10000);
     last = Object.assign({}, bets); bets = {}; stack = []; busy = false; Bank.add(pay); renderChips(); stats();
