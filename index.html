@@ -287,7 +287,12 @@ header.top{padding-top:env(safe-area-inset-top)}
   .brand{font-size:15px}
   #bal{font-size:19px}
   .ctl2{grid-template-columns:1fr}
-}</style>
+}
+/* ===== анимации тасовки карт ===== */
+.felt{position:relative}
+.shuf{position:absolute;inset:0;pointer-events:none;z-index:6}
+.shuf .card{position:absolute;left:50%;top:50%;margin:-42px 0 0 -29px;will-change:transform,opacity;opacity:0}
+@media (max-width:640px){.shuf .card{margin:-32px 0 0 -22px}}</style>
 </head>
 <body>
 <header class="top">
@@ -1399,10 +1404,51 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     if (!v.over || !v.hasHand || soundedHand === v.stats.hands) return; soundedHand = v.stats.hands;
     if (v.showdown && v.winners.length) { const mine = v.winners.includes(v.me), w = mine ? v.me : v.winners[0]; Sfx.combo(v.players[w].cat || 0, mine); }
   }
-  let lastHandNo = 0, lastBoardLen = 0;
+  // ---- 5 анимаций тасовки: на каждую раздачу выбирается случайная ----
+  const SHUF_MS = 1150;
+  const SHUF = [
+    // 1. рифл: колода делится пополам и половинки перемешиваются «в замок»
+    (cs, s, ap) => cs.forEach((el, i) => {
+      const side = i < 7 ? -1 : 1, k = i % 7, j = 2 * k + (side > 0 ? 1 : 0), tj = .42 + j * .015;
+      ap(el, [[0, 0, 0, 0, 0], [.06, 0, -k * 1.2, 0, 1], [.3, side * 75 * s, -k * 1.2, side * 5, 1], [tj, side * 5 * s, -j * 1.6, 0, 1], [.78, 0, -j * 1.2, 0, 1], [.9, 0, -j * 1.2, 0, 1], [1, 0, -j * 1.2, 0, 0]]);
+    }),
+    // 2. перекидка: карты по одной перелетают с правой стопки в левую
+    (cs, s, ap) => cs.forEach((el, i) => {
+      const o = 13 - i, t0 = .12 + o * .045;
+      ap(el, [[0, 60 * s, -i * 1.2, 0, 0], [.08, 60 * s, -i * 1.2, 0, 1], [t0, 60 * s, -i * 1.2, 0, 1], [t0 + .1, 0, -34 * s, -12, 1], [t0 + .2, -60 * s, -o * 1.2, 0, 1], [.93, -60 * s, -o * 1.2, 0, 1], [1, -60 * s, -o * 1.2, 0, 0]]);
+    }),
+    // 3. веер: колода раскрывается дугой, перекладывается и собирается
+    (cs, s, ap) => cs.forEach((el, i) => {
+      el.style.transformOrigin = '50% 150%'; const a = (i - 6.5) * 7, b = (6.5 - i) * 3.5;
+      ap(el, [[0, 0, 0, 0, 0], [.05, 0, 0, 0, 1], [.38, 0, 0, a, 1], [.55, 0, 0, a, 1], [.72, 0, 0, b, 1], [.9, 0, 0, 0, 1], [1, 0, 0, 0, 0]]);
+    }),
+    // 4. снятие: верхняя половина откладывается, нижняя ложится сверху
+    (cs, s, ap) => cs.forEach((el, i) => {
+      if (i >= 7) { const y = -(i - 7) * 1.2; ap(el, [[0, 0, 0, 0, 0], [.05, 0, -i * 1.2, 0, 1], [.18, 40 * s, -30 * s, 8, 1], [.3, 85 * s, y, 0, 1], [.65, 85 * s, y, 0, 1], [.8, 0, y, 0, 1], [.9, 0, y, 0, 1], [1, 0, y, 0, 0]]); }
+      else { const y = -(i + 7) * 1.2; ap(el, [[0, 0, 0, 0, 0], [.05, 0, -i * 1.2, 0, 1], [.3, 0, -i * 1.2, 0, 1], [.45, 40 * s, -28 * s, -5, 1], [.65, 85 * s, y, 0, 1], [.8, 0, y, 0, 1], [.9, 0, y, 0, 1], [1, 0, y, 0, 0]]); }
+    }),
+    // 5. «стирка»: карты разъезжаются по столу кругами и собираются обратно
+    (cs, s, ap) => cs.forEach((el, i) => {
+      const r = (a, b) => a + randInt(1000) / 1000 * (b - a), P = () => [r(-110, 110) * s, r(-50, 50) * s, r(-60, 60)];
+      const [x1, y1, a1] = P(), [x2, y2, a2] = P(), [x3, y3, a3] = P();
+      ap(el, [[0, 0, 0, 0, 0], [.06, 0, 0, 0, 1], [.3, x1, y1, a1, 1], [.55, x2, y2, a2, 1], [.78, x3, y3, a3, 1], [.92, 0, -i * .8, 0, 1], [1, 0, -i * .8, 0, 0]]);
+    })
+  ];
+  function playShuffleAnim() {
+    const felt = root.querySelector('.felt'); if (!felt) return;
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+    const old = felt.querySelector('.shuf'); if (old) old.remove();
+    const ov = document.createElement('div'); ov.className = 'shuf'; felt.appendChild(ov);
+    const cs = []; for (let i = 0; i < 14; i++) { const d = document.createElement('div'); d.className = 'card back'; ov.appendChild(d); cs.push(d); }
+    const s = Math.max(.55, Math.min(1, felt.clientWidth / 700));
+    const ap = (el, fr) => el.animate(fr.map(([o, x, y, a, op]) => ({ offset: o, transform: 'translate(' + x + 'px,' + y + 'px) rotate(' + a + 'deg)', opacity: op })), { duration: SHUF_MS, easing: 'ease-in-out', fill: 'both' });
+    const n = randInt(SHUF.length); felt.dataset.shuf = n;
+    SHUF[n](cs, s, ap);
+    setTimeout(() => ov.remove(), SHUF_MS + 80);
+  }  let lastHandNo = 0, lastBoardLen = 0;
   function dealSounds(v) {
     if (!v.hasHand) return;
-    if (v.stats.hands !== lastHandNo) { lastHandNo = v.stats.hands; lastBoardLen = 0; Sfx.shuffle(); setTimeout(() => Sfx.deal(2), 1250); }
+    if (v.stats.hands !== lastHandNo) { lastHandNo = v.stats.hands; lastBoardLen = 0; Sfx.shuffle(); playShuffleAnim(); setTimeout(() => Sfx.deal(2), 1250); }
     if (v.board.length > lastBoardLen) { const k = v.board.length - lastBoardLen; lastBoardLen = v.board.length; if (lastHandNo) Sfx.deal(Math.min(3, k)); }
   }
   function renderView(v) {
@@ -1423,7 +1469,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     G('pbet').textContent = me.bet > 0 ? 'Ваша ставка: ' + money(me.bet) : '';
     status(v.text, v.color); dealSounds(v); soundHand(v);
     G('next').style.display = v.canNext ? 'inline-block' : 'none';
-    G('leave').disabled = !v.over;
+    G('leave').disabled = false;
     // кнопки действий
     const L = v.legal, f = G('fold'), c = G('call'), r = G('raise'), box = G('raise-box');
     f.disabled = !L || L.toCall === 0; c.disabled = !L; r.disabled = !L || !L.canRaise;
@@ -1658,7 +1704,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
       broadcastLobby(); lobbyRefresh();
     } else if (m.t === 'seat') { rec.stack = Math.max(0, Number(m.stack) || 0); if (rec.check) rec.check(); }
     else if (m.t === 'act') { if (S && H && !H.over && rec.seat >= 0 && H.to === rec.seat && ['fold', 'call', 'raise'].includes(m.a)) apply(rec.seat, m.a, m.to); }
-    else if (m.t === 'leave') { if (S && rec.seat >= 0 && S.P[rec.seat]) { S.P[rec.seat].out = true; log(S.P[rec.seat].name + ' ушёл из-за стола', true); } const i = remotes.indexOf(rec); if (i >= 0) remotes.splice(i, 1); broadcastLobby(); lobbyRefresh(); if (S && H && H.over && S.P.filter(p => !p.out).length < 2) endTable('Все соперники ушли.'); }
+    else if (m.t === 'leave') { if (S && rec.seat >= 0 && S.P[rec.seat]) { const sp = S.P[rec.seat]; log(sp.name + ' ушёл из-за стола', true); if (H && !H.over && !sp.folded) { if (H.to === rec.seat) apply(rec.seat, 'fold'); else sp.folded = true; } sp.out = true; if (H && !H.over && live().length === 1) showdownOrWin(); } const i = remotes.indexOf(rec); if (i >= 0) remotes.splice(i, 1); broadcastLobby(); lobbyRefresh(); if (S && H && H.over && S.P.filter(p => !p.out).length < 2) endTable('Все соперники ушли.'); }
   }
   function joinRoom() {
     const code = G('code').value.trim().toUpperCase(); if (code.length < 4) { status('Введите код стола.', 'var(--down)'); return; }
@@ -1706,8 +1752,8 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     else if (role === 'host') { remotes.forEach(r => send(r.conn, { t: 'end', msg: 'Хозяин закрыл стол.' })); toSolo('Стол закрыт.'); }
   });
   G('leave').addEventListener('click', () => {
-    if (role === 'guest') { if (V && !V.over) { status('Доиграйте текущую раздачу.', 'var(--down)'); return; } send(hostConn, { t: 'leave' }); guestCash(); toSolo('Вы встали из-за стола.'); return; }
-    if (!S) return; if (H && !H.over) { status('Доиграйте текущую раздачу.', 'var(--down)'); return; }
+    if (role === 'guest') { if (V && !V.over && !confirm('Выйти посреди раздачи? Ваша ставка в банке сгорит.')) return; send(hostConn, { t: 'leave' }); guestCash(); toSolo('Вы встали из-за стола.'); return; }
+    if (!S) return; if (H && !H.over && S.P[0].contrib > 0 && !confirm('Выйти посреди раздачи? Ваша ставка в банке сгорит.')) return;
     endTable(role === 'host' ? 'Хозяин встал из-за стола, стол закрыт.' : 'Вы встали из-за стола.');
   });
   G('next').addEventListener('click', () => { if (S && H && H.over) newHand(); });
