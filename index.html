@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Казино на $100</title>
 <style>
   :root{
@@ -221,7 +221,73 @@
     #pk-log{max-height:220px}
     .potline{font-size:15px}
   }
-</style>
+
+/* ===== v2: адаптивность и пропорции ===== */
+body{min-height:100vh;min-height:100dvh;-webkit-text-size-adjust:100%}
+header.top{padding-top:env(safe-area-inset-top)}
+.page{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+@media (min-width:981px){
+  .page{padding:26px 24px 40px}
+  .grid3{grid-template-columns:230px minmax(0,1fr) 290px;gap:22px;align-items:start}
+  .grid3 > .panel{position:sticky;top:84px}
+  .hist{max-height:calc(100vh - 230px)}
+  h2.ptitle{font-size:26px;margin-bottom:16px}
+  .ctl{max-width:480px}
+  .scene{width:220px;height:220px}
+  .stage{max-width:760px}
+  #cr-cv{height:340px}
+  .felt{max-width:760px}
+}
+@media (min-width:1500px){
+  .topin,.page{max-width:1320px}
+}
+@media (max-width:980px){
+  .grid3 > .panel{position:static}
+  .page{max-width:720px}
+}
+@media (max-width:640px){
+  header.top{backdrop-filter:blur(8px)}
+  .topin{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 12px}
+  .brand{font-size:16px;order:1;margin-right:auto}
+  .bank{order:2;min-width:0;text-align:right}
+  .bank .label{display:none}
+  #bal{font-size:21px}
+  #esc{min-height:0;font-size:11px}
+  #sfx,#newgame{order:3;margin:0;padding:6px 9px;font-size:11px;min-height:34px}
+  nav{order:4;flex:1 0 100%;margin:0 -12px;padding:2px 12px 4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  nav a{flex:0 0 auto;scroll-snap-align:start;padding:9px 14px;font-size:14px;border-color:var(--line)}
+  nav a.on{border-color:var(--gold)}
+  .page{padding:12px 12px calc(28px + env(safe-area-inset-bottom))}
+  h2.ptitle{font-size:19px;line-height:1.25;margin-bottom:10px}
+  .grid3{gap:12px}
+  .panel{padding:14px;border-radius:12px}
+  .center{gap:14px}
+  .ctl{max-width:none;gap:14px}
+  .ctl2{grid-template-columns:1fr 1fr;gap:8px}
+  input[type=number],select{padding:12px;min-height:46px}
+  button{min-height:48px}
+  button.sec,button.ghost{min-height:42px}
+  .quick{overflow-x:auto;flex-wrap:nowrap;gap:6px;padding-bottom:4px;scrollbar-width:none}
+  .quick::-webkit-scrollbar{display:none}
+  .quick button{flex:0 0 auto;min-width:54px;min-height:38px;padding:8px 12px;font-size:13px}
+  .scene{width:170px;height:170px}
+  .rules{gap:6px;font-size:12px}
+  .rules span{padding:5px 9px}
+  .msg{font-size:17px}
+  .stat{font-size:13px;padding:8px 0}
+  #cr-cv{height:260px}
+  #strip{height:32px}
+  #rl-table{grid-template-rows:repeat(3,42px) 42px 42px}
+  .chipb{width:46px;height:46px;min-height:0}
+  .pk-act{gap:8px;width:100%}
+  .pk-act button{flex:1 1 0;min-width:0;padding:12px 10px}
+  .hist li{grid-template-columns:48px 1fr auto;padding:8px}
+}
+@media (max-width:380px){
+  .brand{font-size:15px}
+  #bal{font-size:19px}
+  .ctl2{grid-template-columns:1fr}
+}</style>
 </head>
 <body>
 <header class="top">
