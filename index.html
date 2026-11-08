@@ -292,7 +292,14 @@ header.top{padding-top:env(safe-area-inset-top)}
 .felt{position:relative}
 .shuf{position:absolute;inset:0;pointer-events:none;z-index:6}
 .shuf .card{position:absolute;left:50%;top:50%;margin:-42px 0 0 -29px;will-change:transform,opacity;opacity:0}
-@media (max-width:640px){.shuf .card{margin:-32px 0 0 -22px}}</style>
+@media (max-width:640px){.shuf .card{margin:-32px 0 0 -22px}}
+/* ===== лица ботов ===== */
+.bface{width:54px;height:54px;flex:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.bface svg{width:100%;height:100%;display:block}
+.bface .eye{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+.seat.folded .bface{opacity:.55;filter:grayscale(.6) drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+@media (max-width:640px){.bface{width:40px;height:40px}}</style>
 </head>
 <body>
 <header class="top">
@@ -506,12 +513,39 @@ const Sfx = (() => {
   // падение с обода: удары о дефлекторы, затем первый тяжёлый контакт с колесом
   function rlDrop() { [[0, 1, 1.15], [.085, .8, .95], [.19, .95, 1.05], [.3, .7, .9], [.4, .55, 1]].forEach(([t, a, p]) => hit(t, a, p)); }
   // шарик замирает в ячейке: отскоки с укорачивающимися паузами и тихий «посад»
-  function rlSettle() { [[0, .9], [.08, .6], [.135, .4], [.175, .26], [.2, .16]].forEach(([t, a]) => hit(t, a, .95 + Math.random() * .1)); burst(.24, .05, 400, .8, .08, 'lowpass'); }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
+  function rlSettle() { [[0, .9], [.08, .6], [.135, .4], [.175, .26], [.2, .16]].forEach(([t, a]) => hit(t, a, .95 + Math.random() * .1)); burst(.24, .05, 400, .8, .08, 'lowpass'); }  // ---- звуки тасовок: по одному на каждую анимацию (тайминги совпадают с анимацией, 1.15 с) ----
+  function swish(t, d, f0, f1, v) {
+    const c = get(); if (!c) return; const t0 = c.currentTime + t, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = noiseBuf; s.loop = true; s.playbackRate.value = .9 + Math.random() * .3; f.type = 'bandpass'; f.Q.value = 1.1;
+    f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + d);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + d * .3); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+    s.connect(f); f.connect(g); g.connect(out); s.start(t0, Math.random() * .5); s.stop(t0 + d + .03);
+  }
+  const tap = (t, a) => { a = a || 1; burst(t, .035, 2600 + Math.random() * 1200, 1.3, .16 * a); burst(t, .05, 700, .8, .12 * a, 'lowpass'); };
+  function shuffleKind(n) {
+    if (!get()) return; const T = 1.15;
+    if (n === 0) {            // рифл: половинки, быстрая «трещотка», выравнивание
+      swish(.04, .3, 1500, 2600, .06);
+      for (let j = 0; j < 14; j++) tap((.42 + j * .015) * T, .55 + j * .02);
+      swish(.42 * T, .25, 2200, 3800, .07); tap(.8 * T, 1); tap(.84 * T, .6);
+    } else if (n === 1) {     // перекидка: карты по одной «фыр-тюк»
+      for (let o = 0; o < 14; o++) { const t0 = (.12 + o * .045) * T; swish(t0 + .02, .09, 1800, 3500, .06); tap(t0 + .2 * T, .5 + Math.random() * .3); }
+    } else if (n === 2) {     // веер: плавный взлёт, перекладывание, сбор
+      swish(.05 * T, .38 * T, 900, 4200, .09); for (let i = 0; i < 14; i++) burst(.05 * T + i * .028, .02, 4500 + i * 120, 2, .05);
+      swish(.72 * T, .2 * T, 3800, 1000, .08); tap(.92 * T, .9);
+    } else if (n === 3) {     // снятие: подняли, положили, накрыли, вернули
+      swish(.05 * T, .25 * T, 1200, 2800, .07); tap(.3 * T, .8);
+      swish(.45 * T, .22 * T, 1400, 3000, .07); tap(.65 * T, 1); swish(.65 * T, .15 * T, 1000, 1800, .05); tap(.82 * T, .7);
+    } else {                  // стирка: десятки шорохов по столу, затем сбор
+      for (let i = 0; i < 22; i++) swish(.05 + Math.random() * .75 * T, .12 + Math.random() * .12, 1200 + Math.random() * 1500, 2200 + Math.random() * 2200, .035 + Math.random() * .03);
+      swish(.78 * T, .15 * T, 3500, 1200, .08); tap(.92 * T, .9);
+    }
+  }  document.addEventListener('visibilitychange', () => { if (document.hidden) crashStop(); });
   return {
     get on() { return on; }, get state() { return ctx ? ctx.state : 'none'; },
     unlock() { const c = get(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {} if (c.state === 'suspended') c.resume(); },
     crashStart, crashUpdate, crashStop, crashBoom,
-    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop, rlSettle,
+    coinFlick, coinTick, coinLand, rlStart, rlUpdate, rlStop, rlClick, rlDrop, rlSettle, shuffleKind,
     setOn(v) { on = v; try { localStorage.setItem('casino_sfx', v ? '1' : '0'); } catch (e) {} },
     win(big) { [0, 4, 7, 12].forEach((s, i) => voice(N(s + 12), i * .1, .9, .2, 'bell')); if (big) [0, 4, 7].forEach(s => voice(N(s + 24), .45, 1.2, .12, 'bell')); },
     lose() { [-5, -8, -12].forEach((s, i) => voice(N(s), i * .22, .8, .26, 'dark')); },
@@ -1365,7 +1399,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     const P = S.P, p = P[i], act = !!H && !H.over, L = act && H.to === i ? legalFor(i) : null;
     const players = P.map((q, k) => ({
       name: q.name, kind: q.kind, level: q.level, stack: q.stack, bet: q.bet || 0, contrib: q.contrib || 0, folded: !!q.folded, out: !!q.out,
-      dealer: !!H && H.dealer === k, turn: act && H.to === k,
+      dealer: !!H && H.dealer === k, turn: act && H.to === k, face: q.kind === 'bot' ? (q.face || null) : null,
       cards: !H || q.out || !q.hole ? null : (k === i || (H.reveal && !q.folded)) ? q.hole : 'back'
     }));
     let boardHl = [], handName = '', showdown = !!H && H.over && H.reveal;
@@ -1393,11 +1427,49 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   }
 
   /* ---------- отрисовка по представлению (одинаково для хозяина и гостя) ---------- */
-  function seatHtml(p, v) {
+  /* ---------- лица ботов ---------- */
+  const SKINS = ['#f3d2b3', '#e8b98d', '#c68e63', '#8d5a3b', '#f7dcc6'], HAIRC = ['#2b1d12', '#6b4423', '#c9a24a', '#8a8a8a', '#141414', '#a33c1f'];
+  const hashStr = s => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+  const MOODS = {
+    neutral:   { e: 1,    b: 0,    dy: 0,  mouth: 'curve', m: .08 },
+    happy:     { e: .6,   b: -.25, dy: -1, mouth: 'grin',  m: 1, blush: 1 },
+    smug:      { e: .62,  b: .35,  dy: 0,  mouth: 'smirk', m: 1, look: 1 },
+    thinking:  { e: .95,  b: -.2,  dy: 0,  mouth: 'flat',  m: 0, look: 2, lb: -3 },
+    worried:   { e: 1,    b: -.9,  dy: -.5, mouth: 'wave', m: -.5 },
+    nervous:   { e: 1.15, b: -1,   dy: -1, mouth: 'wave',  m: -.8, sweat: 1 },
+    angry:     { e: .8,   b: 1,    dy: 1,  mouth: 'curve', m: -.9 },
+    sad:       { e: .8,   b: -.7,  dy: 1,  mouth: 'curve', m: -1 },
+    surprised: { e: 1.35, b: -.2,  dy: -4, mouth: 'o',     m: 1 }
+  };
+  function faceHtml(p) {
+    const f = p.face || { m: 'neutral', amp: 1 }, mood = MOODS[p.turn ? 'thinking' : f.m] || MOODS.neutral, amp = p.turn ? .8 : f.amp;
+    const h = hashStr(p.name), skin = SKINS[h % 5], hc = HAIRC[(h >> 3) % 6], hs = (h >> 6) % 4;
+    const e = 1 + (mood.e - 1) * amp, b = mood.b * amp, dy = mood.dy * amp, m = mood.m * amp, ey = 5.2 * e;
+    const look = mood.look === 1 ? [1.6, .6] : mood.look === 2 ? [1.8, -1.6] : [0, 0];
+    const yi = 22 + dy + 4 * b, yo = 22 + dy - 2 * b, lbl = mood.lb ? mood.lb * amp : 0, ink = '#5a2a20';
+    const brow = (x1, y1, x2, y2) => '<line x1="' + x1 + '" y1="' + y1.toFixed(1) + '" x2="' + x2 + '" y2="' + y2.toFixed(1) + '" stroke="' + hc + '" stroke-width="2.6" stroke-linecap="round"/>';
+    const line = d => '<path d="' + d + '" fill="none" stroke="' + ink + '" stroke-width="2" stroke-linecap="round"/>';
+    let mouth;
+    if (mood.mouth === 'grin') mouth = amp > .8 ? '<path d="M23 43 Q32 56 41 43 Z" fill="#fff" stroke="' + ink + '" stroke-width="1.6" stroke-linejoin="round"/>' : line('M24 45 Q32 ' + (45 + 9 * Math.max(.4, amp)).toFixed(1) + ' 40 45');
+    else if (mood.mouth === 'smirk') mouth = line('M25 47 Q33 ' + (47 + 3 * amp).toFixed(1) + ' 41 ' + (47 - 4 * amp).toFixed(1));
+    else if (mood.mouth === 'o') mouth = '<ellipse cx="32" cy="47" rx="' + (2 + 2 * amp).toFixed(1) + '" ry="' + (2 + 3 * amp).toFixed(1) + '" fill="#4a1e18"/>';
+    else if (mood.mouth === 'flat') mouth = line('M26 47 L38 46');
+    else if (mood.mouth === 'wave') mouth = line('M24 47 Q28 ' + (47 - 2.4 * amp).toFixed(1) + ' 32 47 T40 47');
+    else mouth = line('M24 46 Q32 ' + (46 + 8 * m).toFixed(1) + ' 40 46');
+    const eye = x => '<g class="eye" style="animation-delay:-' + ((h % 40) / 10) + 's"><ellipse cx="' + x + '" cy="31" rx="5" ry="' + ey.toFixed(2) + '" fill="#fff"/><circle cx="' + (x + look[0]) + '" cy="' + (31 + look[1]) + '" r="2.4" fill="#2a2a2a"/></g>';
+    const hair = hs === 0 ? '<path d="M10 30 Q10 8 32 8 Q54 8 54 30 Q47 17 32 17 Q17 17 10 30Z" fill="' + hc + '"/>'
+      : hs === 1 ? '<path d="M8 40 Q6 6 32 7 Q58 6 56 40 L50 40 Q50 18 32 18 Q14 18 14 40Z" fill="' + hc + '"/>'
+      : hs === 2 ? '<path d="M12 24 Q16 12 32 12 Q48 12 52 24 Q44 18 32 18 Q20 18 12 24Z" fill="' + hc + '" opacity=".55"/>'
+      : '<path d="M10 28 Q10 8 32 8 Q54 8 54 28 Q46 16 32 16 Q18 16 10 28Z" fill="' + hc + '"/><path d="M12 40 Q14 58 32 58 Q50 58 52 40 Q48 50 32 50 Q16 50 12 40Z" fill="' + hc + '"/>';
+    return '<div class="bface" data-m="' + (p.turn ? 'thinking' : f.m) + '"><svg viewBox="0 0 64 64"><circle cx="32" cy="34" r="22" fill="' + skin + '"/>' + hair
+      + (mood.blush ? '<circle cx="17" cy="41" r="4" fill="#ff7a7a" opacity=".35"/><circle cx="47" cy="41" r="4" fill="#ff7a7a" opacity=".35"/>' : '')
+      + eye(23) + eye(41) + brow(17, yo + lbl, 28, yi + lbl) + brow(36, yi, 47, yo) + mouth
+      + (mood.sweat && amp > .6 ? '<path d="M50 20 Q53 25 50 28 Q47 25 50 20Z" fill="#7fc8ff"/>' : '') + '</svg></div>';
+  }  function seatHtml(p, v) {
     const cls = 'seat' + (p.folded ? ' folded' : '') + (p.turn ? ' turn' : '');
     const cards = p.cards === null ? emptyHtml + emptyHtml : p.cards === 'back' ? backHtml + backHtml : p.cards.map(c => cardHtml(c, p.hl.includes(c), v.showdown && !p.hl.includes(c))).join('');
     const tag = p.hname ? p.hname : p.folded ? 'фолд' : p.stack === 0 && p.contrib > 0 ? 'олл-ин' : '';
-    return '<div class="' + cls + '"><div class="nm"><span>' + p.name + '</span><span class="dbtn" style="display:' + (p.dealer ? 'inline-flex' : 'none') + '">D</span></div><div class="nm"><span class="stk">' + money(p.stack) + '</span></div><div class="cards">' + cards + '</div><div class="betline">' + (p.bet > 0 ? money(p.bet) : '') + '</div><div class="tag">' + tag + ' <i style="opacity:.7">' + (p.kind === 'bot' ? LEVELS[p.level] : '') + '</i></div></div>';
+    return '<div class="' + cls + '">' + (p.kind === 'bot' ? faceHtml(p) : '') + '<div class="nm"><span>' + p.name + '</span><span class="dbtn" style="display:' + (p.dealer ? 'inline-flex' : 'none') + '">D</span></div><div class="nm"><span class="stk">' + money(p.stack) + '</span></div><div class="cards">' + cards + '</div><div class="betline">' + (p.bet > 0 ? money(p.bet) : '') + '</div><div class="tag">' + tag + ' <i style="opacity:.7">' + (p.kind === 'bot' ? LEVELS[p.level] : '') + '</i></div></div>';
   }
   let soundedHand = 0;
   function soundHand(v) {
@@ -1435,6 +1507,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     })
   ];
   function playShuffleAnim() {
+    const n = randInt(SHUF.length); Sfx.shuffleKind(n);
     const felt = root.querySelector('.felt'); if (!felt) return;
     try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
     const old = felt.querySelector('.shuf'); if (old) old.remove();
@@ -1442,13 +1515,13 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     const cs = []; for (let i = 0; i < 14; i++) { const d = document.createElement('div'); d.className = 'card back'; ov.appendChild(d); cs.push(d); }
     const s = Math.max(.55, Math.min(1, felt.clientWidth / 700));
     const ap = (el, fr) => el.animate(fr.map(([o, x, y, a, op]) => ({ offset: o, transform: 'translate(' + x + 'px,' + y + 'px) rotate(' + a + 'deg)', opacity: op })), { duration: SHUF_MS, easing: 'ease-in-out', fill: 'both' });
-    const n = randInt(SHUF.length); felt.dataset.shuf = n;
+    felt.dataset.shuf = n;
     SHUF[n](cs, s, ap);
     setTimeout(() => ov.remove(), SHUF_MS + 80);
   }  let lastHandNo = 0, lastBoardLen = 0;
   function dealSounds(v) {
     if (!v.hasHand) return;
-    if (v.stats.hands !== lastHandNo) { lastHandNo = v.stats.hands; lastBoardLen = 0; Sfx.shuffle(); playShuffleAnim(); setTimeout(() => Sfx.deal(2), 1250); }
+    if (v.stats.hands !== lastHandNo) { lastHandNo = v.stats.hands; lastBoardLen = 0; playShuffleAnim(); setTimeout(() => Sfx.deal(2), 1250); }
     if (v.board.length > lastBoardLen) { const k = v.board.length - lastBoardLen; lastBoardLen = v.board.length; if (lastHandNo) Sfx.deal(Math.min(3, k)); }
   }
   function renderView(v) {
@@ -1493,7 +1566,36 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   function nextSeat(i) { const n = NP(); for (let k = 1; k <= n; k++) { const j = (i + k) % n; if (!S.P[j].out) return j; } return i; }
 
   const rec = p => S.stats[p.name] || (S.stats[p.name] = { hands: 0, vpip: 0, pfr: 0, aggr: 0, pass: 0, faced: 0, fold: 0 });
-  function newHand() {
+  /* ---------- эмоции ботов: чем сложнее бот, тем спокойнее лицо и лучше блеф ---------- */
+  const CALM = { easy: 0, mid: .35, hard: .7, genius: .93 }, BLUFFSK = { easy: 0, mid: .15, hard: .5, genius: .85 };
+  function strengthOf(p) {
+    if (!p.hole) return .4;
+    if (!H || H.board.length < 3) {
+      const a = p.hole[0] % 13, b = p.hole[1] % 13, hi = Math.max(a, b), lo = Math.min(a, b), su = ((p.hole[0] / 13) | 0) === ((p.hole[1] / 13) | 0);
+      if (a === b) return .5 + a / 12 * .45;
+      return Math.min(.9, .12 + (hi + lo) / 24 * .5 + (su ? .05 : 0) + (hi - lo <= 2 ? .03 : 0));
+    }
+    return [.2, .45, .62, .74, .8, .86, .93, .97, 1][catOf(evalCards([...p.hole, ...H.board]))];
+  }
+  const feltMood = s => s >= .8 ? 'happy' : s >= .62 ? 'smug' : s >= .42 ? 'neutral' : s >= .28 ? 'worried' : 'nervous';
+  // что бот «чувствует» (по реальной руке) показывается тем чаще, чем он слабее; сильные боты прячут эмоции и умеют лгать лицом
+  function showFace(p, felt, story) {
+    const lv = p.level, calm = lv in CALM ? CALM[lv] : .35, bs = lv in BLUFFSK ? BLUFFSK[lv] : .15; let m;
+    if (story === 'bluff' && Math.random() < bs) m = Math.random() < .65 ? 'smug' : 'neutral';
+    else if (story === 'slow' && Math.random() < bs) m = Math.random() < .5 ? 'worried' : 'thinking';
+    else m = Math.random() < 1 - calm ? felt : 'neutral';
+    p.face = { m, amp: Math.round((1 - .55 * calm) * 100) / 100 };
+  }
+  function botReact(i, a) {
+    const p = S.P[i];
+    if (p.kind === 'bot') {
+      const s = strengthOf(p);
+      if (a === 'fold') showFace(p, 'sad', null);
+      else if (a === 'raise') showFace(p, feltMood(s), s < .4 ? 'bluff' : null);
+      else showFace(p, feltMood(s), s >= .75 && H.street > 0 ? 'slow' : null);
+    }
+    if (a === 'raise') S.P.forEach((q, k) => { if (k !== i && q.kind === 'bot' && !q.folded && !q.out && Math.random() < .75) { const s = strengthOf(q); showFace(q, s >= .7 ? 'smug' : s < .4 ? 'worried' : 'neutral', null); } });
+  }  function newHand() {
     clearTimeout(nextTimer);
     const act = S.P.filter(p => !p.out);
     if (act.length < 2) { endTable('За столом не осталось соперников.'); return; }
@@ -1505,6 +1607,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     const sbI = act.length === 2 ? dl : nextSeat(dl), bbI = nextSeat(sbI);
     post(sbI, S.sb); post(bbI, S.bb);
     log('— Раздача #' + S.hands + ' (кнопка: ' + S.P[dl].name + ') —', true);
+    S.P.forEach(p => { if (p.kind === 'bot' && !p.out) { p.sPrev = strengthOf(p); showFace(p, feltMood(p.sPrev), null); } });
     syncBank(); H.to = nextNeed(nextSeat(bbI)); sync();
     if (H.to < 0) { streetEnd(); return; }
     turn();
@@ -1522,7 +1625,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
         const eff = Math.max(...opps.map(o => o.stack), 0);
         const d = decide(p.level, { hole: p.hole, board: H.board, pot: potNow(), toCall: L.toCall, st: p.stack, oppSt: eff, myBet: p.bet, curBet: maxBet(), bb: S.bb, street: H.street, minTo: L.minTo, maxTo: L.maxTo, ip: H.dealer === i, opps, canRaise: L.canRaise, style: STYLES[p.style], tilt: p.tilt });
         apply(i, d.a, d.to);
-      }, 450 + Math.random() * 500 + (L.toCall > potNow() * .6 ? 700 : 0) + (L.toCall >= p.stack && p.stack > 0 ? 900 : 0));
+      }, 1100 + Math.random() * 1500 + (L.toCall > potNow() * .6 ? 1100 : 0) + (L.toCall >= p.stack && p.stack > 0 ? 1300 : 0));
     } else if (p.kind === 'remote') {
       timer = setTimeout(() => { if (H && !H.over && H.to === i) { log(p.name + ' не ответил за 60 секунд', true); apply(i, legalFor(i).toCall > 0 ? 'fold' : 'call'); } }, 60000);
     }
@@ -1554,6 +1657,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
       if (H.street === 0) { if (!p.vpipDone) { rc.vpip++; p.vpipDone = true; } if (!p.pfrDone) { rc.pfr++; p.pfrDone = true; } } else rc.aggr++;
     }
     syncBank();
+    botReact(i, a);
     const j = nextNeed((i + 1) % NP());
     if (j < 0) { H.to = -1; H.note = ' '; sync(); timer = setTimeout(streetEnd, 450); return; }
     H.to = j; turn();
@@ -1564,6 +1668,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     if (H.street === 4) { showdownOrWin(); return; }
     if (H.street === 1) H.board.push(H.deck.pop(), H.deck.pop(), H.deck.pop()); else H.board.push(H.deck.pop());
     log(STR[H.street] + ': ' + H.board.map(c => RK[c % 13] + SUITS[(c / 13) | 0]).join(' '), true);
+    S.P.forEach(p => { if (p.kind === 'bot' && !p.folded && !p.out) { const s = strengthOf(p), d = s - (p.sPrev || s); p.sPrev = s; showFace(p, d >= .15 ? 'surprised' : d <= -.12 ? 'worried' : feltMood(s), null); } });
     if (able().length <= 1) { H.to = -1; H.note = 'Открываем карты…'; sync(); timer = setTimeout(streetEnd, 1000); return; }
     H.to = nextNeed(nextSeat(H.dealer)); turn();
   }
@@ -1590,6 +1695,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
     S.big = Math.max(S.big, total);
     P.forEach(p => { if (p.out || p.kind === 'bot') return; const net = r2(p.stack - p.startStack); p.lastNet = net; p.net = r2(p.net + net); net > 0 ? p.w++ : net < 0 ? p.l++ : 0; });
     P.forEach(p => { if (p.kind === 'bot') { const lost = p.startStack - p.stack; p.tilt = lost > .3 * S.init ? Math.min(1, (p.tilt || 0) + .6) : (p.tilt || 0) * .6; } });
+    P.forEach(p => { if (p.kind !== 'bot' || p.out) return; const net = r2(p.stack - p.startStack); showFace(p, net > 0 ? (net > S.bb * 8 ? 'happy' : 'smug') : net < 0 ? (p.tilt > .5 ? 'angry' : 'sad') : 'neutral', null); });
     H.to = -1; syncBank();
     P.forEach((p, i) => { if (p.kind === 'bot' && p.stack < 0.01) { p.stack = S.init; log(p.name + ' проиграл весь стек и докупился на ' + money(S.init), true); } });
     const me = P[0], net = me.lastNet;
@@ -1776,7 +1882,7 @@ createCoin($('#pg-x2'), { id: 'cf2', title: 'Коинфлип: ×2 / ×0.1', up:
   window.addEventListener('beforeunload', () => { try { if (peer) peer.destroy(); } catch (e) {} });
 
   try { const t = Number(localStorage.getItem(TKEY)); if (isFinite(t) && t > 0) { Bank.bal = Math.min(BIG, Bank.bal + t); Bank.save(); } localStorage.removeItem(TKEY); } catch (e) {}
-  window.__pk = { state: () => S, view: () => V, role: () => role, evalCards, equity, makeRange, decide, catOf, CATN };
+  window.__pk = { faceHtml, state: () => S, view: () => V, role: () => role, evalCards, equity, makeRange, decide, catOf, CATN };
   lobbyRefresh(); resetTableUi();
 })();
 
