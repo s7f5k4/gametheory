@@ -384,26 +384,40 @@ const Sfx = (() => {
     try {
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
-        out = ctx.createGain(); out.gain.value = .9; out.connect(ctx.destination);
-        // мягкое «эхо» для объёма
-        const d = ctx.createDelay(.5), fb = ctx.createGain(), wet = ctx.createGain(), lp = ctx.createBiquadFilter();
-        d.delayTime.value = .14; fb.gain.value = .32; wet.gain.value = .22; lp.type = 'lowpass'; lp.frequency.value = 2200;
-        out.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(wet); wet.connect(ctx.destination);
-        noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+        out = ctx.createGain(); out.gain.value = .9;
+        const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .2;
+        out.connect(comp); comp.connect(ctx.destination);
+        // реверберация: синтетический импульсный отклик (затухающий, темнеющий шум), как в небольшом зале
+        const sr = ctx.sampleRate, len = Math.floor(sr * 1.6), ir = ctx.createBuffer(2, len, sr);
+        for (let k = 0; k < 2; k++) { const dd = ir.getChannelData(k); let lp = 0; for (let i = 0; i < len; i++) { const x = 1 - i / len; lp += ((Math.random() * 2 - 1) - lp) * (.25 + .75 * x); dd[i] = lp * Math.pow(x, 3.2); } }
+        const conv = ctx.createConvolver(), wet = ctx.createGain(); conv.buffer = ir; wet.gain.value = .55; out.connect(conv); conv.connect(wet); wet.connect(comp);        noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
       }
       if (ctx.state === 'suspended') ctx.resume(); return ctx;
     } catch (e) { return null; }
   };
-  // колокольчик / мягкий / глухой тембр с естественным затуханием
+  // тембры без «чиптюна»: стеклянный колокольчик (неточные обертоны, быстрее затухают верха),
+  // «электро-пианино» (мягкая атака, звонкий хвост) и глухой «войлочный» удар (фильтр закрывается)
   function voice(f, t, d, v, kind) {
-    const c = get(); if (!c) return; const t0 = c.currentTime + t, g = c.createGain();
-    const parts = kind === 'bell' ? [[1, 1], [2, .33], [3.01, .12], [4.17, .05]] : kind === 'soft' ? [[1, 1], [2, .14]] : [[1, 1], [2, .3], [3, .16]];
-    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + .012); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
-    let dest = out; if (kind === 'dark') { dest = c.createBiquadFilter(); dest.type = 'lowpass'; dest.frequency.value = 650; dest.Q.value = .7; dest.connect(out); }
-    g.connect(dest);
-    parts.forEach(([m, a]) => { const o = c.createOscillator(), ga = c.createGain(); o.type = kind === 'dark' ? 'triangle' : 'sine'; o.frequency.value = f * m; ga.gain.value = a; o.connect(ga); ga.connect(g); o.start(t0); o.stop(t0 + d + .05); });
-  }
-  // короткий всплеск шума (карты, шорох)
+    const c = get(); if (!c) return; const t0 = c.currentTime + t;
+    const P = kind === 'bell' ? [[1, 1, 1], [2.756, .45, .55], [5.404, .25, .3], [8.933, .12, .18]]
+      : kind === 'soft' ? [[1, 1, 1], [2, .22, .7], [7.1, .07, .12]]
+      : [[1, 1, 1], [2, .5, .6], [3, .3, .4], [4.2, .15, .25]];
+    const att = kind === 'soft' ? .008 : .002; let dest = out;
+    if (kind !== 'bell') {
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = .8;
+      if (kind === 'dark') { lp.frequency.setValueAtTime(1800, t0); lp.frequency.exponentialRampToValueAtTime(320, t0 + d * .8); } else lp.frequency.value = 4200;
+      lp.connect(out); dest = lp;
+    }
+    P.forEach(([m, a, k]) => {
+      if (f * m > 16000) return;
+      const o = c.createOscillator(), g = c.createGain(), dd = Math.max(.04, d * k);
+      o.type = 'sine'; o.frequency.value = f * m; o.detune.value = (Math.random() - .5) * 6;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(.0002, v * a), t0 + att); g.gain.exponentialRampToValueAtTime(.0001, t0 + att + dd);
+      o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + att + dd + .05);
+    });
+    if (kind === 'bell') burst(t, .012, Math.min(9000, f * 5), 1.2, v * .5, 'bandpass');
+    else if (kind === 'dark') burst(t, .03, 500, .8, v * .6, 'lowpass');
+  }  // короткий всплеск шума (карты, шорох)
   function burst(t, d, freq, q, v, type) {
     const c = get(); if (!c) return; const t0 = c.currentTime + t, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
     s.buffer = noiseBuf; s.loop = true; s.playbackRate.value = .8 + Math.random() * .5; f.type = type || 'bandpass'; f.frequency.value = freq; f.Q.value = q;
